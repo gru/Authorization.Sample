@@ -1,0 +1,51 @@
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+nupkg/
+
+# Visual Studio Code
+.vscode
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Visual Studio 2015
+.vs/
+Consul/consul.exe
+
+node_modules/
+Consul/data/
+Stoloto.Dice.WebClient/dice/dist/
+.idea
+Consul/traefik_windows-amd64.exe
+Publish/Develop/Traefik/traefik_windows-amd64.exe
+Publish/Develop/Consul/consul.exe
+Publish/Develop/Prometheus/data/
+Publish/Develop/Prometheus/console_libraries/
+Publish/Develop/Prometheus/consoles/
+Publish/Develop/Prometheus/promtool.exe
+Publish/Develop/Prometheus/prometheus.exe
+Publish/Develop/Prometheus/NOTICE
+Publish/Develop/Prometheus/LICENSE
+Publish/Develop/data/
