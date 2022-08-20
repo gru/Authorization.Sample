@@ -73,6 +73,11 @@ public class RoleAuthorizationPolicyRule
     public string RoleName { get; set; }
 }
 
+public enum PolicyEffect
+{
+    Allow, Deny
+}
+
 public interface IAuthorizationPolicyRuleQuery<out TPolicy>
 {
     public IQueryable<TPolicy> PrepareQuery();
@@ -80,7 +85,7 @@ public interface IAuthorizationPolicyRuleQuery<out TPolicy>
 
 public interface IMatcher<in TRequest>
 {
-    bool Match(TRequest request);
+    IQueryable<PolicyEffect> Match(TRequest request);
 }
 
 public abstract class Matcher<TRequest, TPolicy> : IMatcher<TRequest>
@@ -92,12 +97,12 @@ public abstract class Matcher<TRequest, TPolicy> : IMatcher<TRequest>
         _authorizationPolicyRuleQuery = authorizationPolicyRuleQuery;
     }
 
-    public bool Match(TRequest request)
+    public IQueryable<PolicyEffect> Match(TRequest request)
     {
         return Match(request, _authorizationPolicyRuleQuery.PrepareQuery());
     }
 
-    protected abstract bool Match(TRequest request, IQueryable<TPolicy> rules);
+    protected abstract IQueryable<PolicyEffect> Match(TRequest request, IQueryable<TPolicy> rules);
 }
 
 public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, AuthorizationPolicyRule>
@@ -107,11 +112,13 @@ public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, Authoriza
     {
     }
 
-    protected override bool Match(AuthorizationRequest request, IQueryable<AuthorizationPolicyRule> rules)
+    protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<AuthorizationPolicyRule> rules)
     {
-        return rules.Any(r => r.UserId == request.UserId && 
-                             (r.Resource == request.Resource || r.Resource == SecurableId.Any) && 
-                             (r.Action == request.Action || r.Action == PermissionId.Any));
+        return rules
+            .Where(r => r.UserId == request.UserId && 
+                       (r.Resource == request.Resource || r.Resource == SecurableId.Any) && 
+                       (r.Action == request.Action || r.Action == PermissionId.Any))
+            .Select(r => PolicyEffect.Allow);
     }
 }
 
@@ -122,9 +129,11 @@ public class SuperuserMatcher : Matcher<AuthorizationRequest, RoleAuthorizationP
     {
     }
 
-    protected override bool Match(AuthorizationRequest request, IQueryable<RoleAuthorizationPolicyRule> rules)
+    protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<RoleAuthorizationPolicyRule> rules)
     {
-        return rules.Any(r => r.UserId == request.UserId && r.RoleName == "Superuser");
+        return rules
+            .Where(r => r.UserId == request.UserId && r.RoleName == "Superuser")
+            .Select(r => PolicyEffect.Allow);
     }
 }
 
@@ -137,7 +146,7 @@ public class AllowOverrideEffector<TRequest> : IEffector<TRequest>
 {
     public bool Apply(IReadOnlyCollection<IMatcher<TRequest>> matchers, TRequest request)
     {
-        return matchers.Any(m => m.Match(request));
+        return matchers.SelectMany(m => m.Match(request)).Any(e => e == PolicyEffect.Allow);
     }
 }
 
@@ -145,7 +154,7 @@ public class DenyOverrideEffector<TRequest> : IEffector<TRequest>
 {
     public bool Apply(IReadOnlyCollection<IMatcher<TRequest>> matchers, TRequest request)
     {
-        return matchers.All(m => m.Match(request));
+        return matchers.SelectMany(m => m.Match(request)).All(e => e == PolicyEffect.Allow);
     }
 }
 
@@ -153,7 +162,9 @@ public class AllowAndDenyEffector<TRequest> : IEffector<TRequest>
 {
     public bool Apply(IReadOnlyCollection<IMatcher<TRequest>> matchers, TRequest request)
     {
-        return matchers.Any(m => m.Match(request)) && matchers.All(m => m.Match(request));
+        var effects = matchers.SelectMany(m => m.Match(request)).ToArray();
+        
+        return effects.Any(e => e == PolicyEffect.Allow) && effects.All(e => e == PolicyEffect.Allow);
     }
 }
 
