@@ -122,7 +122,7 @@ public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, Authoriza
     }
 }
 
-public class SuperuserMatcher : Matcher<AuthorizationRequest, RoleAuthorizationPolicyRule>
+public class SuperuserMatcher : SuperuserMatcherBase<AuthorizationRequest>
 {
     public SuperuserMatcher(IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule> authorizationPolicyRuleQuery) 
         : base(authorizationPolicyRuleQuery)
@@ -131,8 +131,21 @@ public class SuperuserMatcher : Matcher<AuthorizationRequest, RoleAuthorizationP
 
     protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<RoleAuthorizationPolicyRule> rules)
     {
+        return Match(request.UserId, rules);
+    }
+}
+
+public abstract class SuperuserMatcherBase<TRequest> : Matcher<TRequest, RoleAuthorizationPolicyRule>
+{
+    protected SuperuserMatcherBase(IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule> authorizationPolicyRuleQuery) 
+        : base(authorizationPolicyRuleQuery)
+    {
+    }
+    
+    protected IQueryable<PolicyEffect> Match(long userId, IQueryable<RoleAuthorizationPolicyRule> rules)
+    {
         return rules
-            .Where(r => r.UserId == request.UserId && r.RoleName == "Superuser")
+            .Where(r => r.UserId == userId && r.RoleName == "Superuser")
             .Select(r => PolicyEffect.Allow);
     }
 }

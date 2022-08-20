@@ -51,6 +51,48 @@ public class EnforcerTests
     }
 }
 
+public class DocumentTypeEnforcerTests
+{
+    [Fact]
+    public void Enforce_BankUser_Permissions()
+    {
+        var enforcer = CreateEnforcer(BankUserId.BankUser);
+        
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Account, Permissions.View)));
+        Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Account, Permissions.Change)));
+        Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Guarantee, Permissions.View)));
+        Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Guarantee, Permissions.Change)));
+    }
+
+    [Fact]
+    public void Enforce_Superuser_Permissions()
+    {
+        var enforcer = CreateEnforcer(BankUserId.Superuser);
+        
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Account, Permissions.View)));
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Account, Permissions.Change)));
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Guarantee, Permissions.View)));
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Guarantee, Permissions.Change)));
+    }
+    
+    private static Enforcer CreateEnforcer(BankUserId currentUser)
+    {
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton(new DataContext());
+        serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
+        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<AuthorizationPolicyRule>, TestAuthorizationPolicyRuleQuery>();
+        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule>, TestRoleAuthorizationPolicyRuleQuery>();
+        serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, ResourcePermissionMatcher>();
+        serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, SuperuserMatcher>();
+        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<DocumentTypeAuthorizationPolicyRule>, TestDocumentTypeAuthorizationPolicyRuleQuery>();
+        serviceCollection.AddSingleton<IMatcher<DocumentTypeAuthorizationRequest>, DocumentTypeMatcher>();
+        serviceCollection.AddSingleton<IMatcher<DocumentTypeAuthorizationRequest>, DocumentTypeSuperuserMatcher>();
+        serviceCollection.AddSingleton<Enforcer>();
+
+        return serviceCollection.BuildServiceProvider().GetService<Enforcer>();
+    }
+}
+
 public class TestAuthorizationPolicyRuleQuery : IAuthorizationPolicyRuleQuery<AuthorizationPolicyRule>
 {
     private readonly DataContext _context;
@@ -96,6 +138,87 @@ public class TestRoleAuthorizationPolicyRuleQuery : IAuthorizationPolicyRuleQuer
             };
         return query;
     }
+}
+
+public class DocumentTypeAuthorizationPolicyRule
+{
+    public long UserId { get; set; }
+
+    public DocumentTypeId DocumentTypeId { get; set; }
+
+    public PermissionId PermissionId { get; set; }
+
+    public string RoleName { get; set; }
+}
+
+public class TestDocumentTypeAuthorizationPolicyRuleQuery : IAuthorizationPolicyRuleQuery<DocumentTypeAuthorizationPolicyRule>
+{
+    private readonly DataContext _context;
+
+    public TestDocumentTypeAuthorizationPolicyRuleQuery(DataContext context)
+    {
+        _context = context;
+    }
+    
+    public IQueryable<DocumentTypeAuthorizationPolicyRule> PrepareQuery()
+    {
+        var query =
+            from bankUserRole in _context.BankUserRoles
+            join documentTypeRolePermission in _context.DocumentTypeRolePermissions on bankUserRole.RoleId equals documentTypeRolePermission.RoleId
+            join role in _context.Roles on bankUserRole.RoleId equals role.Id
+            select new DocumentTypeAuthorizationPolicyRule
+            { 
+                UserId = (long) bankUserRole.BankUserId,
+                DocumentTypeId = documentTypeRolePermission.DocumentTypeId,
+                PermissionId = documentTypeRolePermission.PermissionId,
+                RoleName = role.Name
+            };
+
+        return query;
+    }
+}
+
+public class DocumentTypeMatcher : Matcher<DocumentTypeAuthorizationRequest, DocumentTypeAuthorizationPolicyRule>
+{
+    public DocumentTypeMatcher(IAuthorizationPolicyRuleQuery<DocumentTypeAuthorizationPolicyRule> authorizationPolicyRuleQuery) 
+        : base(authorizationPolicyRuleQuery)
+    {
+    }
+
+    protected override IQueryable<PolicyEffect> Match(DocumentTypeAuthorizationRequest request, IQueryable<DocumentTypeAuthorizationPolicyRule> rules)
+    {
+        return rules
+            .Where(r => r.UserId == request.UserId && 
+                       (r.PermissionId == request.PermissionId || r.PermissionId == PermissionId.Any) && 
+                       (r.DocumentTypeId == request.DocumentTypeId))
+            .Select(r => PolicyEffect.Allow);
+    }
+}
+
+public class DocumentTypeSuperuserMatcher : SuperuserMatcherBase<DocumentTypeAuthorizationRequest>
+{
+    public DocumentTypeSuperuserMatcher(IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule> authorizationPolicyRuleQuery) 
+        : base(authorizationPolicyRuleQuery)
+    {
+    }
+
+    protected override IQueryable<PolicyEffect> Match(DocumentTypeAuthorizationRequest request, IQueryable<RoleAuthorizationPolicyRule> rules)
+    {
+        return Match(request.UserId, rules);
+    }
+}
+
+public class DocumentTypeAuthorizationRequest : CurrentUserAuthorizationRequest
+{
+    public DocumentTypeAuthorizationRequest(DocumentTypeId documentTypeId, PermissionId permissionId)
+    {
+        DocumentTypeId = documentTypeId;
+        PermissionId = permissionId;
+    }
+
+    public DocumentTypeId DocumentTypeId { get; set; }
+
+    public PermissionId PermissionId { get; set; }
 }
 
 public class TestUserService : ICurrentUserService
@@ -154,6 +277,24 @@ public class DataContext
             new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Document },
             new RolePermission { RoleId = RoleId.Supervisor, PermissionId = PermissionId.Any, SecurableId = SecurableId.Any },
         }.AsQueryable();
+
+        Documents = new[]
+        {
+            new Document { Id = 1, DocumentTypeId = DocumentTypeId.Account },
+            new Document { Id = 2, DocumentTypeId = DocumentTypeId.Account },
+            new Document { Id = 3, DocumentTypeId = DocumentTypeId.Guarantee },
+        }.AsQueryable();
+
+        DocumentTypes = new[]
+        {
+            new DocumentType { Id = DocumentTypeId.Account, Name = nameof(DocumentTypeId.Account) },
+            new DocumentType { Id = DocumentTypeId.Guarantee, Name = nameof(DocumentTypeId.Guarantee) },
+        }.AsQueryable();
+
+        DocumentTypeRolePermissions = new[]
+        {
+            new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.View },
+        }.AsQueryable();
     }
     
     public IQueryable<BankUser> BankUsers { get; }
@@ -167,6 +308,12 @@ public class DataContext
     public IQueryable<Securable> Securables { get; }
     
     public IQueryable<RolePermission> RolePermissions { get; }
+    
+    public IQueryable<Document> Documents { get; }
+    
+    public IQueryable<DocumentType> DocumentTypes { get; }
+    
+    public IQueryable<DocumentTypeRolePermission> DocumentTypeRolePermissions { get; }
 }
 
 public enum BankUserId
@@ -219,4 +366,32 @@ public class Securable
     public SecurableId Id { get; set; }
 
     public string Name { get; set; }
+}
+
+public class Document
+{
+    public long Id { get; set; }
+
+    public DocumentTypeId DocumentTypeId { get; set; }
+}
+
+public class DocumentType
+{
+    public DocumentTypeId Id { get; set; }
+
+    public string Name { get; set; }
+}
+
+public enum DocumentTypeId
+{
+    Account = 1, Guarantee = 2
+}
+
+public class DocumentTypeRolePermission
+{
+    public RoleId RoleId { get; set; }
+
+    public PermissionId PermissionId { get; set; }
+
+    public DocumentTypeId DocumentTypeId { get; set; }
 }
