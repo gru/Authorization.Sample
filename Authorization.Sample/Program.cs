@@ -238,28 +238,13 @@ public class Enforcer
         var filters = _serviceProvider.GetServices<IFilter<T, AuthorizationFilterContext>>().ToArray();
         var context = new AuthorizationFilterContext(_currentUserService.UserId, permissionId);
 
-        foreach (var filter in filters)
-            query = filter.Join(query, context);
-        
-        return query;
-    }
-}
-
-internal static class PredicateBuilder
-{
-    public static Expression<Func<T, bool>> False<T> () { return f => false; }
-
-    public static Expression<Func<T, bool>> Or<T> (this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
-    {
-        var invokedExpr = Expression.Invoke (expr2, expr1.Parameters.Cast<Expression> ());
-        return Expression.Lambda<Func<T, bool>>
-            (Expression.OrElse (expr1.Body, invokedExpr), expr1.Parameters);
+        return filters.Select(f => f.Apply(query, context)).Aggregate((q1, q2) => q1.Union(q2));;
     }
 }
 
 public interface IFilter<T, in TContext>
 {
-    IQueryable<T> Join(IQueryable<T> query, TContext context);
+    IQueryable<T> Apply(IQueryable<T> query, TContext context);
 }
 
 public class AuthorizationFilterContext
@@ -284,7 +269,7 @@ public abstract class Filter<T, TContext, TPolicy> : IFilter<T, TContext>
         _rules = rules;
     }
 
-    public IQueryable<T> Join(IQueryable<T> query, TContext context)
+    public IQueryable<T> Apply(IQueryable<T> query, TContext context)
     {
         return Join(query, context, _rules.PrepareQuery());
     }
