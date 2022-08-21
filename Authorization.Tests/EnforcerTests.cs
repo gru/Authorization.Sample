@@ -41,8 +41,8 @@ public class EnforcerTests
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton(new DataContext());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
-        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<AuthorizationPolicyRule>, TestAuthorizationPolicyRuleQuery>();
-        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule>, TestRoleAuthorizationPolicyRuleQuery>();
+        serviceCollection.AddSingleton<IPolicyRuleQuery<ResourcePolicyRule>, ResourcePolicyRuleQuery>();
+        serviceCollection.AddSingleton<IPolicyRuleQuery<RolePolicyRule>, RolePolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, ResourcePermissionMatcher>();
         serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, SuperuserMatcher>();
         serviceCollection.AddSingleton<Enforcer>();
@@ -75,18 +75,30 @@ public class DocumentTypeEnforcerTests
         Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Guarantee, Permissions.Change)));
     }
     
+    [Fact]
+    public void Enforce_Supervisor_Permissions()
+    {
+        var enforcer = CreateEnforcer(BankUserId.Superuser);
+        
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Account, Permissions.View)));
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Account, Permissions.Change)));
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Guarantee, Permissions.View)));
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Guarantee, Permissions.Change)));
+    }
+    
     private static Enforcer CreateEnforcer(BankUserId currentUser)
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton(new DataContext());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
-        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<AuthorizationPolicyRule>, TestAuthorizationPolicyRuleQuery>();
-        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule>, TestRoleAuthorizationPolicyRuleQuery>();
+        serviceCollection.AddSingleton<IPolicyRuleQuery<ResourcePolicyRule>, ResourcePolicyRuleQuery>();
+        serviceCollection.AddSingleton<IPolicyRuleQuery<RolePolicyRule>, RolePolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, ResourcePermissionMatcher>();
         serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, SuperuserMatcher>();
-        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<DocumentTypeAuthorizationPolicyRule>, TestDocumentTypeAuthorizationPolicyRuleQuery>();
+        serviceCollection.AddSingleton<IPolicyRuleQuery<DocumentTypePolicyRule>, DocumentTypePolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<DocumentTypeAuthorizationRequest>, DocumentTypeMatcher>();
         serviceCollection.AddSingleton<IMatcher<DocumentTypeAuthorizationRequest>, DocumentTypeSuperuserMatcher>();
+        serviceCollection.AddSingleton<IMatcher<DocumentTypeAuthorizationRequest>, DocumentTypeSupervisorMatcher>();
         serviceCollection.AddSingleton<Enforcer>();
 
         return serviceCollection.BuildServiceProvider().GetService<Enforcer>();
@@ -117,34 +129,45 @@ public class DocumentTypeFilterTests
         Assert.Equal(3, documents.Length);
     }
     
+    [Fact]
+    public void Enforce_Supervisor_Permissions()
+    {
+        var enforcer = CreateEnforcer(BankUserId.Supervisor);
+        var context = new DataContext();
+
+        var documents = enforcer.EnforceFilter(context.Documents).ToArray();
+        Assert.Equal(3, documents.Length);
+    }
+    
     private static Enforcer CreateEnforcer(BankUserId currentUser)
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton(new DataContext());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
-        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<AuthorizationPolicyRule>, TestAuthorizationPolicyRuleQuery>();
-        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule>, TestRoleAuthorizationPolicyRuleQuery>();
+        serviceCollection.AddSingleton<IPolicyRuleQuery<ResourcePolicyRule>, ResourcePolicyRuleQuery>();
+        serviceCollection.AddSingleton<IPolicyRuleQuery<RolePolicyRule>, RolePolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, ResourcePermissionMatcher>();
         serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, SuperuserMatcher>();
-        serviceCollection.AddSingleton<IAuthorizationPolicyRuleQuery<DocumentTypeAuthorizationPolicyRule>, TestDocumentTypeAuthorizationPolicyRuleQuery>();
+        serviceCollection.AddSingleton<IPolicyRuleQuery<DocumentTypePolicyRule>, DocumentTypePolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<DocumentTypeAuthorizationRequest>, DocumentTypeMatcher>();
         serviceCollection.AddSingleton<IMatcher<DocumentTypeAuthorizationRequest>, DocumentTypeSuperuserMatcher>();
         serviceCollection.AddSingleton<IFilter<Document, AuthorizationFilterContext>, DocumentTypeFilter>();
         serviceCollection.AddSingleton<IFilter<Document, AuthorizationFilterContext>, SuperuserFilter>();
+        serviceCollection.AddSingleton<IFilter<Document, AuthorizationFilterContext>, SupervisorFilter>();
         serviceCollection.AddSingleton<Enforcer>();
 
         return serviceCollection.BuildServiceProvider().GetService<Enforcer>();
     }
 }
 
-public class SuperuserFilter : Filter<Document, RoleAuthorizationPolicyRule>
+public class SuperuserFilter : Filter<Document, RolePolicyRule>
 {
-    public SuperuserFilter(IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule> rules) 
+    public SuperuserFilter(IPolicyRuleQuery<RolePolicyRule> rules) 
         : base(rules)
     {
     }
 
-    protected override IQueryable<Document> Join(IQueryable<Document> query, AuthorizationFilterContext context, IQueryable<RoleAuthorizationPolicyRule> rules)
+    protected override IQueryable<Document> Apply(IQueryable<Document> query, AuthorizationFilterContext context, IQueryable<RolePolicyRule> rules)
     {
         var resultQuery = from document in query
             where rules.Any(r => r.UserId == context.UserId && r.RoleName == "Superuser")
@@ -154,14 +177,31 @@ public class SuperuserFilter : Filter<Document, RoleAuthorizationPolicyRule>
     }
 }
 
-public class DocumentTypeFilter : Filter<Document, DocumentTypeAuthorizationPolicyRule>
+public class SupervisorFilter : Filter<Document, ResourcePolicyRule>
 {
-    public DocumentTypeFilter(IAuthorizationPolicyRuleQuery<DocumentTypeAuthorizationPolicyRule> rules) 
+    public SupervisorFilter(IPolicyRuleQuery<ResourcePolicyRule> rules) 
         : base(rules)
     {
     }
 
-    protected override IQueryable<Document> Join(IQueryable<Document> query, AuthorizationFilterContext context, IQueryable<DocumentTypeAuthorizationPolicyRule> rules)
+    protected override IQueryable<Document> Apply(IQueryable<Document> query, AuthorizationFilterContext context, IQueryable<ResourcePolicyRule> rules)
+    {
+        var resultQuery = from document in query
+            where rules.Any(r => r.UserId == context.UserId && (r.Resource == SecurableId.Document || r.Resource == SecurableId.Any) && r.Action == PermissionId.Any)
+            select document;
+
+        return resultQuery;
+    }
+}
+
+public class DocumentTypeFilter : Filter<Document, DocumentTypePolicyRule>
+{
+    public DocumentTypeFilter(IPolicyRuleQuery<DocumentTypePolicyRule> rules) 
+        : base(rules)
+    {
+    }
+
+    protected override IQueryable<Document> Apply(IQueryable<Document> query, AuthorizationFilterContext context, IQueryable<DocumentTypePolicyRule> rules)
     {
         var resultQuery = from document in query
             join rule in rules on document.DocumentTypeId equals rule.DocumentTypeId
@@ -172,21 +212,21 @@ public class DocumentTypeFilter : Filter<Document, DocumentTypeAuthorizationPoli
     }
 }
 
-public class TestAuthorizationPolicyRuleQuery : IAuthorizationPolicyRuleQuery<AuthorizationPolicyRule>
+public class ResourcePolicyRuleQuery : IPolicyRuleQuery<ResourcePolicyRule>
 {
     private readonly DataContext _context;
 
-    public TestAuthorizationPolicyRuleQuery(DataContext context)
+    public ResourcePolicyRuleQuery(DataContext context)
     {
         _context = context;
     }
     
-    public IQueryable<AuthorizationPolicyRule> PrepareQuery()
+    public IQueryable<ResourcePolicyRule> PrepareQuery()
     {
         var query =
             from bankUserRole in _context.BankUserRoles
             join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
-            select new AuthorizationPolicyRule
+            select new ResourcePolicyRule
             {
                 UserId = (long) bankUserRole.BankUserId, 
                 Resource = rolePermission.SecurableId,
@@ -196,21 +236,21 @@ public class TestAuthorizationPolicyRuleQuery : IAuthorizationPolicyRuleQuery<Au
     }
 }
 
-public class TestRoleAuthorizationPolicyRuleQuery : IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule>
+public class RolePolicyRuleQuery : IPolicyRuleQuery<RolePolicyRule>
 {
     private readonly DataContext _context;
 
-    public TestRoleAuthorizationPolicyRuleQuery(DataContext context)
+    public RolePolicyRuleQuery(DataContext context)
     {
         _context = context;
     }
     
-    public IQueryable<RoleAuthorizationPolicyRule> PrepareQuery()
+    public IQueryable<RolePolicyRule> PrepareQuery()
     {
         var query =
             from bankUserRole in _context.BankUserRoles
             join role in _context.Roles on bankUserRole.RoleId equals role.Id 
-            select new RoleAuthorizationPolicyRule
+            select new RolePolicyRule
             {
                 UserId = (long) bankUserRole.BankUserId, 
                 RoleName = role.Name
@@ -219,52 +259,48 @@ public class TestRoleAuthorizationPolicyRuleQuery : IAuthorizationPolicyRuleQuer
     }
 }
 
-public class DocumentTypeAuthorizationPolicyRule
+public class DocumentTypePolicyRule
 {
     public long UserId { get; set; }
 
     public DocumentTypeId DocumentTypeId { get; set; }
 
     public PermissionId PermissionId { get; set; }
-
-    public string RoleName { get; set; }
 }
 
-public class TestDocumentTypeAuthorizationPolicyRuleQuery : IAuthorizationPolicyRuleQuery<DocumentTypeAuthorizationPolicyRule>
+public class DocumentTypePolicyRuleQuery : IPolicyRuleQuery<DocumentTypePolicyRule>
 {
     private readonly DataContext _context;
 
-    public TestDocumentTypeAuthorizationPolicyRuleQuery(DataContext context)
+    public DocumentTypePolicyRuleQuery(DataContext context)
     {
         _context = context;
     }
     
-    public IQueryable<DocumentTypeAuthorizationPolicyRule> PrepareQuery()
+    public IQueryable<DocumentTypePolicyRule> PrepareQuery()
     {
         var query =
             from bankUserRole in _context.BankUserRoles
             join documentTypeRolePermission in _context.DocumentTypeRolePermissions on bankUserRole.RoleId equals documentTypeRolePermission.RoleId
-            join role in _context.Roles on bankUserRole.RoleId equals role.Id
-            select new DocumentTypeAuthorizationPolicyRule
+            select new DocumentTypePolicyRule
             { 
                 UserId = (long) bankUserRole.BankUserId,
                 DocumentTypeId = documentTypeRolePermission.DocumentTypeId,
                 PermissionId = documentTypeRolePermission.PermissionId,
-                RoleName = role.Name
             };
 
         return query;
     }
 }
 
-public class DocumentTypeMatcher : Matcher<DocumentTypeAuthorizationRequest, DocumentTypeAuthorizationPolicyRule>
+public class DocumentTypeMatcher : Matcher<DocumentTypeAuthorizationRequest, DocumentTypePolicyRule>
 {
-    public DocumentTypeMatcher(IAuthorizationPolicyRuleQuery<DocumentTypeAuthorizationPolicyRule> authorizationPolicyRuleQuery) 
-        : base(authorizationPolicyRuleQuery)
+    public DocumentTypeMatcher(IPolicyRuleQuery<DocumentTypePolicyRule> policyRuleQuery) 
+        : base(policyRuleQuery)
     {
     }
 
-    protected override IQueryable<PolicyEffect> Match(DocumentTypeAuthorizationRequest request, IQueryable<DocumentTypeAuthorizationPolicyRule> rules)
+    protected override IQueryable<PolicyEffect> Match(DocumentTypeAuthorizationRequest request, IQueryable<DocumentTypePolicyRule> rules)
     {
         return rules
             .Where(r => r.UserId == request.UserId && 
@@ -276,14 +312,31 @@ public class DocumentTypeMatcher : Matcher<DocumentTypeAuthorizationRequest, Doc
 
 public class DocumentTypeSuperuserMatcher : SuperuserMatcherBase<DocumentTypeAuthorizationRequest>
 {
-    public DocumentTypeSuperuserMatcher(IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule> authorizationPolicyRuleQuery) 
-        : base(authorizationPolicyRuleQuery)
+    public DocumentTypeSuperuserMatcher(IPolicyRuleQuery<RolePolicyRule> policyRuleQuery) 
+        : base(policyRuleQuery)
     {
     }
 
-    protected override IQueryable<PolicyEffect> Match(DocumentTypeAuthorizationRequest request, IQueryable<RoleAuthorizationPolicyRule> rules)
+    protected override IQueryable<PolicyEffect> Match(DocumentTypeAuthorizationRequest request, IQueryable<RolePolicyRule> rules)
     {
         return Match(request.UserId, rules);
+    }
+}
+
+public class DocumentTypeSupervisorMatcher : Matcher<DocumentTypeAuthorizationRequest, ResourcePolicyRule>
+{
+    public DocumentTypeSupervisorMatcher(IPolicyRuleQuery<ResourcePolicyRule> policyRuleQuery) 
+        : base(policyRuleQuery)
+    {
+    }
+
+    protected override IQueryable<PolicyEffect> Match(DocumentTypeAuthorizationRequest request, IQueryable<ResourcePolicyRule> rules)
+    {
+        return rules
+            .Where(r => r.UserId == request.UserId &&
+                       (r.Resource == SecurableId.Document || r.Resource == SecurableId.Any) &&
+                        r.Action == PermissionId.Any)
+            .Select(r => PolicyEffect.Allow);
     }
 }
 

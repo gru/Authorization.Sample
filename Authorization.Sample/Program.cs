@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Authorization.Sample;
 
@@ -58,7 +57,7 @@ public class AuthorizationRequest : CurrentUserAuthorizationRequest
     public PermissionId Action { get; }
 }
 
-public class AuthorizationPolicyRule
+public class ResourcePolicyRule
 {
     public long UserId { get; set; }
     
@@ -67,7 +66,7 @@ public class AuthorizationPolicyRule
     public PermissionId Action { get; set; }
 }
 
-public class RoleAuthorizationPolicyRule
+public class RolePolicyRule
 {
     public long UserId { get; set; }
 
@@ -79,7 +78,7 @@ public enum PolicyEffect
     Allow, Deny
 }
 
-public interface IAuthorizationPolicyRuleQuery<out TPolicy>
+public interface IPolicyRuleQuery<out TPolicy>
 {
     public IQueryable<TPolicy> PrepareQuery();
 }
@@ -91,29 +90,29 @@ public interface IMatcher<in TRequest>
 
 public abstract class Matcher<TRequest, TPolicy> : IMatcher<TRequest>
 {
-    private readonly IAuthorizationPolicyRuleQuery<TPolicy> _authorizationPolicyRuleQuery;
+    private readonly IPolicyRuleQuery<TPolicy> _policyRuleQuery;
 
-    protected Matcher(IAuthorizationPolicyRuleQuery<TPolicy> authorizationPolicyRuleQuery)
+    protected Matcher(IPolicyRuleQuery<TPolicy> policyRuleQuery)
     {
-        _authorizationPolicyRuleQuery = authorizationPolicyRuleQuery;
+        _policyRuleQuery = policyRuleQuery;
     }
 
     public IQueryable<PolicyEffect> Match(TRequest request)
     {
-        return Match(request, _authorizationPolicyRuleQuery.PrepareQuery());
+        return Match(request, _policyRuleQuery.PrepareQuery());
     }
 
     protected abstract IQueryable<PolicyEffect> Match(TRequest request, IQueryable<TPolicy> rules);
 }
 
-public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, AuthorizationPolicyRule>
+public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, ResourcePolicyRule>
 {
-    public ResourcePermissionMatcher(IAuthorizationPolicyRuleQuery<AuthorizationPolicyRule> authorizationPolicyRuleQuery) 
-        : base(authorizationPolicyRuleQuery)
+    public ResourcePermissionMatcher(IPolicyRuleQuery<ResourcePolicyRule> policyRuleQuery) 
+        : base(policyRuleQuery)
     {
     }
 
-    protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<AuthorizationPolicyRule> rules)
+    protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<ResourcePolicyRule> rules)
     {
         return rules
             .Where(r => r.UserId == request.UserId && 
@@ -125,25 +124,25 @@ public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, Authoriza
 
 public class SuperuserMatcher : SuperuserMatcherBase<AuthorizationRequest>
 {
-    public SuperuserMatcher(IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule> authorizationPolicyRuleQuery) 
-        : base(authorizationPolicyRuleQuery)
+    public SuperuserMatcher(IPolicyRuleQuery<RolePolicyRule> policyRuleQuery) 
+        : base(policyRuleQuery)
     {
     }
 
-    protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<RoleAuthorizationPolicyRule> rules)
+    protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<RolePolicyRule> rules)
     {
         return Match(request.UserId, rules);
     }
 }
 
-public abstract class SuperuserMatcherBase<TRequest> : Matcher<TRequest, RoleAuthorizationPolicyRule>
+public abstract class SuperuserMatcherBase<TRequest> : Matcher<TRequest, RolePolicyRule>
 {
-    protected SuperuserMatcherBase(IAuthorizationPolicyRuleQuery<RoleAuthorizationPolicyRule> authorizationPolicyRuleQuery) 
-        : base(authorizationPolicyRuleQuery)
+    protected SuperuserMatcherBase(IPolicyRuleQuery<RolePolicyRule> policyRuleQuery) 
+        : base(policyRuleQuery)
     {
     }
     
-    protected IQueryable<PolicyEffect> Match(long userId, IQueryable<RoleAuthorizationPolicyRule> rules)
+    protected IQueryable<PolicyEffect> Match(long userId, IQueryable<RolePolicyRule> rules)
     {
         return rules
             .Where(r => r.UserId == userId && r.RoleName == "Superuser")
@@ -262,24 +261,24 @@ public class AuthorizationFilterContext
 
 public abstract class Filter<T, TContext, TPolicy> : IFilter<T, TContext>
 {
-    private readonly IAuthorizationPolicyRuleQuery<TPolicy> _rules;
+    private readonly IPolicyRuleQuery<TPolicy> _rules;
 
-    protected Filter(IAuthorizationPolicyRuleQuery<TPolicy> rules)
+    protected Filter(IPolicyRuleQuery<TPolicy> rules)
     {
         _rules = rules;
     }
 
     public IQueryable<T> Apply(IQueryable<T> query, TContext context)
     {
-        return Join(query, context, _rules.PrepareQuery());
+        return Apply(query, context, _rules.PrepareQuery());
     }
 
-    protected abstract IQueryable<T> Join(IQueryable<T> query, TContext context, IQueryable<TPolicy> rules);
+    protected abstract IQueryable<T> Apply(IQueryable<T> query, TContext context, IQueryable<TPolicy> rules);
 }
 
 public abstract class Filter<T, TPolicy> : Filter<T, AuthorizationFilterContext, TPolicy>
 {
-    protected Filter(IAuthorizationPolicyRuleQuery<TPolicy> rules) 
+    protected Filter(IPolicyRuleQuery<TPolicy> rules) 
         : base(rules)
     {
     }
