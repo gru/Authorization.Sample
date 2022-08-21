@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Linq.Expressions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Authorization.Sample;
 
@@ -230,5 +231,71 @@ public class Enforcer
         };
 
         return effector.Apply(matchers, request);
+    }
+
+    public IQueryable<T> EnforceFilter<T>(IQueryable<T> query, PermissionId permissionId = PermissionId.View)
+    {
+        var filters = _serviceProvider.GetServices<IFilter<T, AuthorizationFilterContext>>().ToArray();
+        var context = new AuthorizationFilterContext(_currentUserService.UserId, permissionId);
+
+        foreach (var filter in filters)
+            query = filter.Join(query, context);
+        
+        return query;
+    }
+}
+
+internal static class PredicateBuilder
+{
+    public static Expression<Func<T, bool>> False<T> () { return f => false; }
+
+    public static Expression<Func<T, bool>> Or<T> (this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
+    {
+        var invokedExpr = Expression.Invoke (expr2, expr1.Parameters.Cast<Expression> ());
+        return Expression.Lambda<Func<T, bool>>
+            (Expression.OrElse (expr1.Body, invokedExpr), expr1.Parameters);
+    }
+}
+
+public interface IFilter<T, in TContext>
+{
+    IQueryable<T> Join(IQueryable<T> query, TContext context);
+}
+
+public class AuthorizationFilterContext
+{
+    public AuthorizationFilterContext(long userId, PermissionId permissionId = PermissionId.View)
+    {
+        UserId = userId;
+        PermissionId = permissionId;
+    }
+
+    public long UserId { get; }
+
+    public PermissionId PermissionId { get; }
+}
+
+public abstract class Filter<T, TContext, TPolicy> : IFilter<T, TContext>
+{
+    private readonly IAuthorizationPolicyRuleQuery<TPolicy> _rules;
+
+    protected Filter(IAuthorizationPolicyRuleQuery<TPolicy> rules)
+    {
+        _rules = rules;
+    }
+
+    public IQueryable<T> Join(IQueryable<T> query, TContext context)
+    {
+        return Join(query, context, _rules.PrepareQuery());
+    }
+
+    protected abstract IQueryable<T> Join(IQueryable<T> query, TContext context, IQueryable<TPolicy> rules);
+}
+
+public abstract class Filter<T, TPolicy> : Filter<T, AuthorizationFilterContext, TPolicy>
+{
+    protected Filter(IAuthorizationPolicyRuleQuery<TPolicy> rules) 
+        : base(rules)
+    {
     }
 }
