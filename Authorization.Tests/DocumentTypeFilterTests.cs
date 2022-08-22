@@ -199,11 +199,11 @@ public class DocumentTypeFilter : Filter<Document, DocumentTypePolicyRule>
         var organizationContextRules = rules
             .ApplyOrganizationContextFilter(context.OrganizationContext);
         
-        var resultQuery = 
-            from document in query
-            join rule in organizationContextRules on document.DocumentTypeId equals rule.DocumentTypeId
-            where rule.UserId == context.UserId && rule.PermissionId == context.PermissionId
-            select document;
+        var resultQuery = query
+            .Join(organizationContextRules, d => d.DocumentTypeId, r => r.DocumentTypeId,
+                (d, r) => new { Document = d, Rule = r })
+            .Where(pair => pair.Rule.UserId == context.UserId && pair.Rule.PermissionId == context.PermissionId)
+            .Select(pair => pair.Document);
 
         return resultQuery;
     }
