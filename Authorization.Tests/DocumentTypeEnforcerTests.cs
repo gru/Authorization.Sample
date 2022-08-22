@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Authorization.Sample;
 using Authorization.Tests.Entities;
@@ -214,10 +215,8 @@ public class DocumentTypeMatcher : Matcher<DocumentTypeAuthorizationRequest, Doc
     protected override IQueryable<PolicyEffect> Match(DocumentTypeAuthorizationRequest request, IQueryable<DocumentTypePolicyRule> rules)
     {
         return rules
-            .Where(r => r.UserId == request.UserId && 
-                       (r.PermissionId == request.PermissionId || r.PermissionId == PermissionId.Any) && 
-                       (r.DocumentTypeId == request.DocumentTypeId))
-            .ApplyOrganizationContextFilter(request.OrganizationContext)
+            .ApplyFilters(request)
+            .Where(r => r.DocumentTypeId == request.DocumentTypeId)
             .Select(r => PolicyEffect.Allow);
     }
 }
@@ -252,7 +251,7 @@ public class DocumentTypeSupervisorMatcher : Matcher<DocumentTypeAuthorizationRe
     }
 }
 
-public class DocumentTypeAuthorizationRequest : CurrentUserAuthorizationRequest
+public class DocumentTypeAuthorizationRequest : CurrentUserAuthorizationRequest, IDocumentTypeRequest
 {
     public DocumentTypeAuthorizationRequest(
         DocumentTypeId documentTypeId, PermissionId permissionId, OrganizationContext organizationContext = null)
