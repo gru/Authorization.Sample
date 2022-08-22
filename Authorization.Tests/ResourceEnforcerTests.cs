@@ -26,21 +26,57 @@ public class ResourceEnforcerTests
 
         Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View)));
         Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change)));
+
+        var data = new OrgStructureClassData();
+        foreach (var organizationContext in data.EnumerateContexts())
+        {
+            Assert.True(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change, organizationContext)));
+        }
+    }
+    
+    [Fact]
+    public void Enforce_RegionalOfficeUser_Permissions_With_OrgContext()
+    {
+        var enforcer = CreateEnforcer(BankUserId.RegionalOfficeUser);
+
+        Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View)));
+        Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change)));
+
+        var data = new OrgStructureClassData();
+        foreach (var organizationContext in data.EnumerateContexts().Take(OrgContextCount.BranchTakeCount))
+        {
+            Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change, organizationContext)));
+        }
         
-        Assert.True(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View,
-            new OrganizationContext(OrgStructure.BranchId))));
-        Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change,
-            new OrganizationContext(OrgStructure.BranchId))));
+        foreach (var organizationContext in data.EnumerateContexts().Skip(OrgContextCount.RegionalOfficeSkipCount))
+        {
+            Assert.True(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change, organizationContext)));
+        }
+    }
+    
+    [Fact]
+    public void Enforce_OfficeUser_Permissions_With_OrgContext()
+    {
+        var enforcer = CreateEnforcer(BankUserId.OfficeUser);
+
+        Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View)));
+        Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change)));
+
+        var data = new OrgStructureClassData();
+        foreach (var organizationContext in data.EnumerateContexts().Take(OrgContextCount.RegionalOfficeTakeCount))
+        {
+            Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change, organizationContext)));
+        }
         
-        Assert.True(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View,
-            new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId))));
-        Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change,
-            new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId))));
-        
-        Assert.True(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View,
-            new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId, OrgStructure.OfficeId))));
-        Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change,
-            new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId, OrgStructure.OfficeId))));
+        foreach (var organizationContext in data.EnumerateContexts().Skip(OrgContextCount.OfficeSkipCount))
+        {
+            Assert.True(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new AuthorizationRequest(Securables.Document, Permissions.Change, organizationContext)));
+        }
     }
     
     [Fact]
