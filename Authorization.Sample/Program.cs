@@ -34,6 +34,33 @@ public static class Permissions
     public static readonly PermissionId Delete = PermissionId.Delete;
 }
 
+public class OrganizationContext
+{
+    public OrganizationContext(long branchId)
+    {
+        BranchId = branchId;
+    }
+
+    public OrganizationContext(long branchId, long regionalOfficeId)
+        : this(branchId)
+    {
+        RegionalOfficeId = regionalOfficeId;
+    }
+
+
+    public OrganizationContext(long branchId, long regionalOfficeId, long officeId)
+        : this(branchId, regionalOfficeId)
+    {
+        OfficeId = officeId;
+    }
+
+    public long BranchId { get; }
+    
+    public long? RegionalOfficeId { get; }
+    
+    public long? OfficeId { get; }
+}
+
 public interface ICurrentUserService
 {
     long UserId { get; }
@@ -46,15 +73,18 @@ public class CurrentUserAuthorizationRequest
 
 public class AuthorizationRequest : CurrentUserAuthorizationRequest
 {
-    public AuthorizationRequest(SecurableId resource, PermissionId action)
+    public AuthorizationRequest(SecurableId resource, PermissionId action, OrganizationContext organizationContext = null)
     {
         Resource = resource;
         Action = action;
+        OrganizationContext = organizationContext;
     }
 
     public SecurableId Resource { get; }
     
     public PermissionId Action { get; }
+
+    public OrganizationContext OrganizationContext { get; }
 }
 
 public class ResourcePolicyRule
@@ -64,6 +94,12 @@ public class ResourcePolicyRule
     public SecurableId Resource { get; set; }
     
     public PermissionId Action { get; set; }
+
+    public long? BranchId { get; set; }
+    
+    public long? RegionalOfficeId { get; set; }
+    
+    public long? OfficeId { get; set; }
 }
 
 public class RolePolicyRule
@@ -71,6 +107,12 @@ public class RolePolicyRule
     public long UserId { get; set; }
 
     public string RoleName { get; set; }
+    
+    public long? BranchId { get; set; }
+    
+    public long? RegionalOfficeId { get; set; }
+    
+    public long? OfficeId { get; set; }
 }
 
 public enum PolicyEffect
@@ -114,11 +156,30 @@ public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, ResourceP
 
     protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<ResourcePolicyRule> rules)
     {
-        return rules
-            .Where(r => r.UserId == request.UserId && 
-                       (r.Resource == request.Resource || r.Resource == SecurableId.Any) && 
-                       (r.Action == request.Action || r.Action == PermissionId.Any))
-            .Select(r => PolicyEffect.Allow);
+        var query = rules
+            .Where(r => r.UserId == request.UserId &&
+                        (r.Resource == request.Resource || r.Resource == SecurableId.Any) &&
+                        (r.Action == request.Action || r.Action == PermissionId.Any));
+
+        if (request.OrganizationContext == null)
+        {
+            query = query
+                .Where(r => r.BranchId == null &&
+                            r.RegionalOfficeId == null &&
+                            r.OfficeId == null);
+        }
+        else
+        {
+            var ctx = request.OrganizationContext;
+
+            query = query
+                .Where(r => (r.BranchId == null && r.RegionalOfficeId == null && r.OfficeId == null) ||
+                            (r.BranchId == ctx.BranchId && 
+                             (r.RegionalOfficeId == null || r.RegionalOfficeId == ctx.RegionalOfficeId) && 
+                             (r.OfficeId == null || r.OfficeId == ctx.OfficeId)));
+        }
+
+        return query.Select(r => PolicyEffect.Allow);
     }
 }
 
