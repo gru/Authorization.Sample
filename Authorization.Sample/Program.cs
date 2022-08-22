@@ -309,10 +309,10 @@ public class Enforcer
         return effector.Apply(matchers, request);
     }
 
-    public IQueryable<T> EnforceFilter<T>(IQueryable<T> query, PermissionId permissionId = PermissionId.View)
+    public IQueryable<T> EnforceFilter<T>(IQueryable<T> query, OrganizationContext organizationContext = null, PermissionId permissionId = PermissionId.View)
     {
         var filters = _serviceProvider.GetServices<IFilter<T, AuthorizationFilterContext>>().ToArray();
-        var context = new AuthorizationFilterContext(_currentUserService.UserId, permissionId);
+        var context = new AuthorizationFilterContext(_currentUserService.UserId, organizationContext, permissionId);
 
         return filters.Select(f => f.Apply(query, context)).Aggregate((q1, q2) => q1.Union(q2));;
     }
@@ -325,15 +325,18 @@ public interface IFilter<T, in TContext>
 
 public class AuthorizationFilterContext
 {
-    public AuthorizationFilterContext(long userId, PermissionId permissionId = PermissionId.View)
+    public AuthorizationFilterContext(long userId, OrganizationContext organizationContext = null, PermissionId permissionId = PermissionId.View)
     {
         UserId = userId;
         PermissionId = permissionId;
+        OrganizationContext = organizationContext;
     }
 
     public long UserId { get; }
 
     public PermissionId PermissionId { get; }
+
+    public OrganizationContext OrganizationContext { get; }
 }
 
 public abstract class Filter<T, TContext, TPolicy> : IFilter<T, TContext>

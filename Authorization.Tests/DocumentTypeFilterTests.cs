@@ -26,13 +26,68 @@ public class DocumentTypeFilterTests
         var enforcer = CreateEnforcer(BankUserId.BankUser);
         var context = new DataContext();
 
-        var accountForChange = enforcer.EnforceFilter(context.Documents, PermissionId.Change).ToArray();
+        var accountForChange = enforcer.EnforceFilter(context.Documents, permissionId: PermissionId.Change).ToArray();
         
         Assert.Equal(2, accountForChange.Length);
         Assert.All(accountForChange, d => Assert.Equal(d.DocumentTypeId, DocumentTypeId.Account));
 
-        var accountsForDelete = enforcer.EnforceFilter(context.Documents, PermissionId.Delete).ToArray();
+        var accountsForDelete = enforcer.EnforceFilter(context.Documents, permissionId: PermissionId.Delete).ToArray();
         Assert.Empty(accountsForDelete);
+    }
+
+    [Fact]
+    public void EnforceFilter_RegionalOfficeUser_With_OrgContext()
+    {
+        var enforcer = CreateEnforcer(BankUserId.RegionalOfficeUser);
+        var context = new DataContext();
+
+        var rootDocuments = enforcer.EnforceFilter(context.Documents).ToArray();
+        
+        Assert.Empty(rootDocuments);
+
+        var data = new OrgStructureClassData();
+        foreach (var organizationContext in data.EnumerateContexts().Take(OrgContextCount.BranchTakeCount))
+        {
+            var documents = enforcer.EnforceFilter(context.Documents, organizationContext).ToArray();
+            
+            Assert.Empty(documents);
+        }
+
+        foreach (var organizationContext in data.EnumerateContexts().Skip(OrgContextCount.RegionalOfficeSkipCount))
+        {
+            var documents = enforcer.EnforceFilter(context.Documents, organizationContext).ToArray();
+            
+            Assert.Equal(2, documents.Length);
+            Assert.All(documents, d => Assert.Equal(d.DocumentTypeId, DocumentTypeId.Account));
+        }
+    }
+
+    
+    [Fact]
+    public void EnforceFilter_OfficeUser_With_OrgContext()
+    {
+        var enforcer = CreateEnforcer(BankUserId.OfficeUser);
+        var context = new DataContext();
+
+        var rootDocuments = enforcer.EnforceFilter(context.Documents).ToArray();
+        
+        Assert.Empty(rootDocuments);
+
+        var data = new OrgStructureClassData();
+        foreach (var organizationContext in data.EnumerateContexts().Take(OrgContextCount.RegionalOfficeTakeCount))
+        {
+            var documents = enforcer.EnforceFilter(context.Documents, organizationContext).ToArray();
+            
+            Assert.Empty(documents);
+        }
+
+        foreach (var organizationContext in data.EnumerateContexts().Skip(OrgContextCount.OfficeSkipCount))
+        {
+            var documents = enforcer.EnforceFilter(context.Documents, organizationContext).ToArray();
+            
+            Assert.Equal(2, documents.Length);
+            Assert.All(documents, d => Assert.Equal(d.DocumentTypeId, DocumentTypeId.Account));
+        }
     }
     
     [Fact]
@@ -45,6 +100,17 @@ public class DocumentTypeFilterTests
         Assert.Equal(3, documents.Length);
     }
     
+    [Theory]
+    [ClassData(typeof(OrgStructureClassData))]
+    public void Enforce_Superuser_Permissions_With_OrgContext(OrganizationContext organizationContext)
+    {
+        var enforcer = CreateEnforcer(BankUserId.Superuser);
+        var context = new DataContext();
+
+        var documents = enforcer.EnforceFilter(context.Documents, organizationContext).ToArray();
+        Assert.Equal(3, documents.Length);
+    }
+    
     [Fact]
     public void Enforce_Supervisor_Permissions()
     {
@@ -52,6 +118,17 @@ public class DocumentTypeFilterTests
         var context = new DataContext();
 
         var documents = enforcer.EnforceFilter(context.Documents).ToArray();
+        Assert.Equal(3, documents.Length);
+    }
+    
+    [Theory]
+    [ClassData(typeof(OrgStructureClassData))]
+    public void Enforce_Supervisor_Permissions_With_OrgContext(OrganizationContext organizationContext)
+    {
+        var enforcer = CreateEnforcer(BankUserId.Supervisor);
+        var context = new DataContext();
+
+        var documents = enforcer.EnforceFilter(context.Documents, organizationContext).ToArray();
         Assert.Equal(3, documents.Length);
     }
     
@@ -119,8 +196,12 @@ public class DocumentTypeFilter : Filter<Document, DocumentTypePolicyRule>
 
     protected override IQueryable<Document> Apply(IQueryable<Document> query, AuthorizationFilterContext context, IQueryable<DocumentTypePolicyRule> rules)
     {
-        var resultQuery = from document in query
-            join rule in rules on document.DocumentTypeId equals rule.DocumentTypeId
+        var organizationContextRules = rules
+            .ApplyOrganizationContextFilter(context.OrganizationContext);
+        
+        var resultQuery = 
+            from document in query
+            join rule in organizationContextRules on document.DocumentTypeId equals rule.DocumentTypeId
             where rule.UserId == context.UserId && rule.PermissionId == context.PermissionId
             select document;
 
