@@ -87,7 +87,7 @@ public class AuthorizationRequest : CurrentUserAuthorizationRequest
     public OrganizationContext OrganizationContext { get; }
 }
 
-public class ResourcePolicyRule
+public class ResourcePolicyRule : IOrganizationContextPolicyRule
 {
     public long UserId { get; set; }
     
@@ -102,7 +102,16 @@ public class ResourcePolicyRule
     public long? OfficeId { get; set; }
 }
 
-public class RolePolicyRule
+public interface IOrganizationContextPolicyRule
+{
+    long? BranchId { get; set; }
+    
+    long? RegionalOfficeId { get; set; }
+    
+    long? OfficeId { get; set; }
+}
+
+public class RolePolicyRule : IOrganizationContextPolicyRule
 {
     public long UserId { get; set; }
 
@@ -156,12 +165,21 @@ public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, ResourceP
 
     protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<ResourcePolicyRule> rules)
     {
-        var query = rules
+        return rules
             .Where(r => r.UserId == request.UserId &&
                         (r.Resource == request.Resource || r.Resource == SecurableId.Any) &&
-                        (r.Action == request.Action || r.Action == PermissionId.Any));
+                        (r.Action == request.Action || r.Action == PermissionId.Any))
+            .ApplyOrganizationContextFilter(request.OrganizationContext)
+            .Select(r => PolicyEffect.Allow);
+    }
+}
 
-        if (request.OrganizationContext == null)
+public static class OrganizationContentPolicyRuleEx
+{
+    public static IQueryable<T> ApplyOrganizationContextFilter<T>(this IQueryable<T> query, OrganizationContext ctx)
+        where T : IOrganizationContextPolicyRule
+    {
+        if (ctx == null)
         {
             query = query
                 .Where(r => r.BranchId == null &&
@@ -170,8 +188,6 @@ public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, ResourceP
         }
         else
         {
-            var ctx = request.OrganizationContext;
-
             query = query
                 .Where(r => (r.BranchId == null && r.RegionalOfficeId == null && r.OfficeId == null) ||
                             (r.BranchId == ctx.BranchId && 
@@ -179,7 +195,7 @@ public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, ResourceP
                              (r.OfficeId == null || r.OfficeId == ctx.OfficeId)));
         }
 
-        return query.Select(r => PolicyEffect.Allow);
+        return query;
     }
 }
 
