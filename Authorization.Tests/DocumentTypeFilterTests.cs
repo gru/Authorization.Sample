@@ -21,6 +21,21 @@ public class DocumentTypeFilterTests
     }
     
     [Fact]
+    public void EnforceFilter_BankUser_Change_Permissions()
+    {
+        var enforcer = CreateEnforcer(BankUserId.BankUser);
+        var context = new DataContext();
+
+        var accountForChange = enforcer.EnforceFilter(context.Documents, PermissionId.Change).ToArray();
+        
+        Assert.Equal(2, accountForChange.Length);
+        Assert.All(accountForChange, d => Assert.Equal(d.DocumentTypeId, DocumentTypeId.Account));
+
+        var accountsForDelete = enforcer.EnforceFilter(context.Documents, PermissionId.Delete).ToArray();
+        Assert.Empty(accountsForDelete);
+    }
+    
+    [Fact]
     public void Enforce_Superuser_Permissions()
     {
         var enforcer = CreateEnforcer(BankUserId.Superuser);

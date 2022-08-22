@@ -72,6 +72,7 @@ public class DataContext
         DocumentTypeRolePermissions = new[]
         {
             new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.View },
+            new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.Change },
         }.AsQueryable();
     }
     
