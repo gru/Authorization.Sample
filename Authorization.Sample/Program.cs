@@ -230,6 +230,27 @@ public interface IEffector<TRequest>
     bool Apply(IReadOnlyCollection<IMatcher<TRequest>> matchers, TRequest request);
 }
 
+public interface IFilterEffector<T, TRequest>
+{
+    IQueryable<T> Apply(IReadOnlyCollection<IFilter<T, TRequest>> filters, IQueryable<T> query, TRequest request);
+}
+
+public class AllowOverrideFilterEffector<T, TRequest> : IFilterEffector<T, TRequest>
+{
+    public IQueryable<T> Apply(IReadOnlyCollection<IFilter<T, TRequest>> filters, IQueryable<T> query, TRequest request)
+    {
+        return filters.Select(f => f.Apply(query, request)).Aggregate((q1, q2) => q1.Union(q2));
+    }
+}
+
+public class DenyOverrideFilterEffector<T, TRequest> : IFilterEffector<T, TRequest>
+{
+    public IQueryable<T> Apply(IReadOnlyCollection<IFilter<T, TRequest>> filters, IQueryable<T> query, TRequest request)
+    {
+        return filters.Select(f => f.Apply(query, request)).Aggregate((q1, q2) => q1.Intersect(q2));
+    }
+}
+
 public class AllowOverrideEffector<TRequest> : IEffector<TRequest>
 {
     public bool Apply(IReadOnlyCollection<IMatcher<TRequest>> matchers, TRequest request)
@@ -246,21 +267,10 @@ public class DenyOverrideEffector<TRequest> : IEffector<TRequest>
     }
 }
 
-public class AllowAndDenyEffector<TRequest> : IEffector<TRequest>
-{
-    public bool Apply(IReadOnlyCollection<IMatcher<TRequest>> matchers, TRequest request)
-    {
-        var effects = matchers.SelectMany(m => m.Match(request)).ToArray();
-        
-        return effects.Any(e => e == PolicyEffect.Allow) && effects.All(e => e == PolicyEffect.Allow);
-    }
-}
-
 public enum Effector
 {
     AllowOverride, 
-    DenyOverride,
-    AllowAndDeny
+    DenyOverride
 }
 
 public class EnforceContext
@@ -295,26 +305,43 @@ public class Enforcer
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
 
         var matchers = _serviceProvider.GetServices<IMatcher<TRequest>>().ToArray();
-    
-        IEffector<TRequest> effector = context.Effector switch
-        {
-            Effector.AllowOverride => new AllowOverrideEffector<TRequest>(),
-            Effector.DenyOverride => new DenyOverrideEffector<TRequest>(),
-            Effector.AllowAndDeny => new AllowAndDenyEffector<TRequest>(),
-            _ => throw new ArgumentOutOfRangeException(nameof(context.Effector))
-        };
+        var effector = CreateEffector<TRequest>(context.Effector);
 
         return effector.Apply(matchers, request);
     }
 
     public IQueryable<T> EnforceFilter<T, TRequest>(IQueryable<T> query, TRequest request)
+        => EnforceFilter(EnforceContext.Default, query, request);
+
+    public IQueryable<T> EnforceFilter<T, TRequest>(EnforceContext context, IQueryable<T> query, TRequest request)
     {
         if (request is ICurrentUserAuthorizationRequest currentUserAuthorizationRequest)
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
 
         var filters = _serviceProvider.GetServices<IFilter<T, TRequest>>().ToArray();
+        var effector = CreateEffector<T, TRequest>(context.Effector);
 
-        return filters.Select(f => f.Apply(query, request)).Aggregate((q1, q2) => q1.Union(q2));;
+        return effector.Apply(filters, query, request);
+    }
+
+    private IEffector<TRequest> CreateEffector<TRequest>(Effector effector)
+    {
+        return effector switch
+        {
+            Effector.AllowOverride => new AllowOverrideEffector<TRequest>(),
+            Effector.DenyOverride => new DenyOverrideEffector<TRequest>(),
+            _ => throw new ArgumentOutOfRangeException(nameof(effector))
+        };
+    }
+    
+    private IFilterEffector<T, TRequest> CreateEffector<T, TRequest>(Effector effector)
+    {
+        return effector switch
+        {
+            Effector.AllowOverride => new AllowOverrideFilterEffector<T, TRequest>(),
+            Effector.DenyOverride => new AllowOverrideFilterEffector<T, TRequest>(),
+            _ => throw new ArgumentOutOfRangeException(nameof(effector))
+        };
     }
 }
 
