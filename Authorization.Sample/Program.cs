@@ -192,7 +192,7 @@ public static class OrganizationContentPolicyRuleEx
             query = query
                 .Where(r => (r.BranchId == null && r.RegionalOfficeId == null && r.OfficeId == null) ||
                             (r.BranchId == ctx.BranchId && 
-                             (r.RegionalOfficeId == null || r.RegionalOfficeId == ctx.RegionalOfficeId) && 
+                             (r.RegionalOfficeId == null || (ctx.RegionalOfficeId == null && ctx.OfficeId != null) || r.RegionalOfficeId == ctx.RegionalOfficeId) && 
                              (r.OfficeId == null || r.OfficeId == ctx.OfficeId)));
         }
 

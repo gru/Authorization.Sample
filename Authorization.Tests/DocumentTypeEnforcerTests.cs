@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Authorization.Sample;
 using Authorization.Tests.Entities;
@@ -20,6 +19,44 @@ public class DocumentTypeEnforcerTests
         Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(DocumentTypeId.Guarantee, Permissions.Change)));
     }
 
+    [Fact]
+    public void Enforce_BankUser_Document_Permissions()
+    {
+        var enforcer = CreateEnforcer(BankUserId.BankUser);
+        
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(
+            document: new Document { Id = 10, DocumentTypeId = DocumentTypeId.Account, BranchId = OrgStructure.BranchId, OfficeId = OrgStructure.OfficeId }, 
+            permissionId: PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(
+            document: new Document { Id = 10, DocumentTypeId = DocumentTypeId.Account, BranchId = OrgStructure.BranchId, OfficeId = OrgStructure.OfficeId }, 
+            permissionId: PermissionId.Delete)));
+        Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(
+            document: new Document { Id = 10, DocumentTypeId = DocumentTypeId.Guarantee, BranchId = OrgStructure.BranchId, OfficeId = OrgStructure.OfficeId }, 
+            permissionId: PermissionId.View)));
+    }
+    
+    [Fact]
+    public void Enforce_OfficeUser_Document_Permissions()
+    {
+        var enforcer = CreateEnforcer(BankUserId.OfficeUser);
+        
+        Assert.True(enforcer.Enforce(new DocumentTypeAuthorizationRequest(
+            document: new Document { Id = 10, DocumentTypeId = DocumentTypeId.Account, BranchId = OrgStructure.BranchId, OfficeId = OrgStructure.OfficeId }, 
+            permissionId: PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(
+            document: new Document { Id = 10, DocumentTypeId = DocumentTypeId.Account, BranchId = OrgStructure.BranchId, OfficeId = 100 }, 
+            permissionId: PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(
+            document: new Document { Id = 10, DocumentTypeId = DocumentTypeId.Account, BranchId = 100, OfficeId = OrgStructure.OfficeId }, 
+            permissionId: PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(
+            document: new Document { Id = 10, DocumentTypeId = DocumentTypeId.Account, BranchId = OrgStructure.BranchId, OfficeId = OrgStructure.OfficeId }, 
+            permissionId: PermissionId.Delete)));
+        Assert.False(enforcer.Enforce(new DocumentTypeAuthorizationRequest(
+            document: new Document { Id = 10, DocumentTypeId = DocumentTypeId.Guarantee, BranchId = OrgStructure.BranchId, OfficeId = OrgStructure.OfficeId }, 
+            permissionId: PermissionId.View)));
+    }
+    
     [Fact]
     public void Enforce_BranchUser_Permissions_With_Org_Context()
     {
@@ -255,8 +292,8 @@ public class DocumentTypeAuthorizationRequest : CurrentUserAuthorizationRequest,
 {
     public DocumentTypeAuthorizationRequest(Document document, PermissionId permissionId)
     {
-        DocumentTypeId = document.DocumentTypeId;
         PermissionId = permissionId;
+        DocumentTypeId = document.DocumentTypeId;
         OrganizationContext = new OrganizationContext(document.BranchId, null, document.OfficeId);
     }
     
