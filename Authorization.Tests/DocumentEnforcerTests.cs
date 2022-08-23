@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Authorization.Sample;
 using Authorization.Tests.Entities;
@@ -184,6 +185,7 @@ public class DocumentEnforcerTests
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton(new DataContext());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
+        serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IPolicyRuleQuery<ResourcePolicyRule>, ResourcePolicyRuleQuery>();
         serviceCollection.AddSingleton<IPolicyRuleQuery<RolePolicyRule>, RolePolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, ResourcePermissionMatcher>();
@@ -197,7 +199,6 @@ public class DocumentEnforcerTests
         return serviceCollection.BuildServiceProvider().GetService<Enforcer>();
     }
 }
-
 
 public class DocumentPolicyRule : IOrganizationContextPolicyRule
 {
@@ -217,17 +218,22 @@ public class DocumentPolicyRule : IOrganizationContextPolicyRule
 public class DocumentPolicyRuleQuery : IPolicyRuleQuery<DocumentPolicyRule>
 {
     private readonly DataContext _context;
+    private readonly ICurrentDateService _dateService;
 
-    public DocumentPolicyRuleQuery(DataContext context)
+    public DocumentPolicyRuleQuery(DataContext context, ICurrentDateService dateService)
     {
         _context = context;
+        _dateService = dateService;
     }
     
     public IQueryable<DocumentPolicyRule> PrepareQuery()
     {
+        var utcNow = _dateService.UtcNow;
+        
         var query =
             from bankUserRole in _context.BankUserRoles
             join documentTypeRolePermission in _context.DocumentTypeRolePermissions on bankUserRole.RoleId equals documentTypeRolePermission.RoleId
+            where bankUserRole.EndDate == null || bankUserRole.EndDate > utcNow 
             select new DocumentPolicyRule
             { 
                 UserId = (long) bankUserRole.BankUserId,

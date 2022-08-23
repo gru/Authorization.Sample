@@ -67,6 +67,16 @@ public interface ICurrentUserService
     long UserId { get; }
 }
 
+public interface ICurrentDateService
+{
+    DateTimeOffset UtcNow { get; }
+}
+
+public class CurrentDateService : ICurrentDateService
+{
+    public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
+}
+
 public class CurrentUserAuthorizationRequest
 {
     public long UserId { get; set; }

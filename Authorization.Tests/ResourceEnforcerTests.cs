@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -126,6 +127,7 @@ public class ResourceEnforcerTests
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton(new DataContext());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
+        serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IPolicyRuleQuery<ResourcePolicyRule>, ResourcePolicyRuleQuery>();
         serviceCollection.AddSingleton<IPolicyRuleQuery<RolePolicyRule>, RolePolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, ResourcePermissionMatcher>();
@@ -170,17 +172,22 @@ public static class OrgContextCount
 public class ResourcePolicyRuleQuery : IPolicyRuleQuery<ResourcePolicyRule>
 {
     private readonly DataContext _context;
+    private readonly ICurrentDateService _dateService;
 
-    public ResourcePolicyRuleQuery(DataContext context)
+    public ResourcePolicyRuleQuery(DataContext context, ICurrentDateService dateService)
     {
         _context = context;
+        _dateService = dateService;
     }
     
     public IQueryable<ResourcePolicyRule> PrepareQuery()
     {
+        var utcNow = _dateService.UtcNow;
+        
         var query =
             from bankUserRole in _context.BankUserRoles
             join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
+            where bankUserRole.EndDate == null || bankUserRole.EndDate > utcNow
             select new ResourcePolicyRule
             {
                 UserId = (long) bankUserRole.BankUserId, 
@@ -197,17 +204,22 @@ public class ResourcePolicyRuleQuery : IPolicyRuleQuery<ResourcePolicyRule>
 public class RolePolicyRuleQuery : IPolicyRuleQuery<RolePolicyRule>
 {
     private readonly DataContext _context;
+    private readonly ICurrentDateService _dateService;
 
-    public RolePolicyRuleQuery(DataContext context)
+    public RolePolicyRuleQuery(DataContext context, ICurrentDateService dateService)
     {
         _context = context;
+        _dateService = dateService;
     }
     
     public IQueryable<RolePolicyRule> PrepareQuery()
     {
+        var utcNow = _dateService.UtcNow;
+        
         var query =
             from bankUserRole in _context.BankUserRoles
-            join role in _context.Roles on bankUserRole.RoleId equals role.Id 
+            join role in _context.Roles on bankUserRole.RoleId equals role.Id
+            where bankUserRole.EndDate == null || bankUserRole.EndDate > utcNow
             select new RolePolicyRule
             {
                 UserId = (long) bankUserRole.BankUserId, 

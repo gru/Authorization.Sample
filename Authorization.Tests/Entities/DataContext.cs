@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Authorization.Sample;
 
@@ -21,6 +22,7 @@ public class DataContext
         {
             new BankUserRole { BankUserId = BankUserId.Superuser, RoleId = RoleId.Superuser },
             new BankUserRole { BankUserId = BankUserId.BankUser, RoleId = RoleId.BankUser },
+            new BankUserRole { BankUserId = BankUserId.BankUser, RoleId = RoleId.Supervisor, EndDate = DateTimeOffset.UtcNow.AddYears(-1)},
             new BankUserRole { BankUserId = BankUserId.Supervisor, RoleId = RoleId.Supervisor },
             new BankUserRole { BankUserId = BankUserId.BranchUser, RoleId = RoleId.BankUser, BranchId = OrgStructure.BranchId },
             new BankUserRole { BankUserId = BankUserId.RegionalOfficeUser, RoleId = RoleId.BankUser, BranchId = OrgStructure.BranchId, RegionalOfficeId = OrgStructure.RegionalOfficeId },
@@ -140,6 +142,8 @@ public class BankUserRole
     public long? RegionalOfficeId { get; set; }
     
     public long? OfficeId { get; set; }
+
+    public DateTimeOffset? EndDate { get; set; }
 }
 
 public static class OrgStructure

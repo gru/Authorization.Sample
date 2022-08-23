@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Authorization.Sample;
 using Authorization.Tests.Entities;
@@ -137,6 +138,7 @@ public class DocumentFilterTests
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton(new DataContext());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
+        serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IPolicyRuleQuery<ResourcePolicyRule>, ResourcePolicyRuleQuery>();
         serviceCollection.AddSingleton<IPolicyRuleQuery<RolePolicyRule>, RolePolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, ResourcePermissionMatcher>();
