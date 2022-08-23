@@ -48,9 +48,10 @@ public class OrganizationContext
     }
 
 
-    public OrganizationContext(long branchId, long regionalOfficeId, long officeId)
-        : this(branchId, regionalOfficeId)
+    public OrganizationContext(long branchId, long? regionalOfficeId, long officeId)
     {
+        BranchId = branchId;
+        RegionalOfficeId = regionalOfficeId;
         OfficeId = officeId;
     }
 

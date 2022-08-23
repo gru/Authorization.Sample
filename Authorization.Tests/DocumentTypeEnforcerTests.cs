@@ -253,6 +253,13 @@ public class DocumentTypeSupervisorMatcher : Matcher<DocumentTypeAuthorizationRe
 
 public class DocumentTypeAuthorizationRequest : CurrentUserAuthorizationRequest, IDocumentTypeRequest
 {
+    public DocumentTypeAuthorizationRequest(Document document, PermissionId permissionId)
+    {
+        DocumentTypeId = document.DocumentTypeId;
+        PermissionId = permissionId;
+        OrganizationContext = new OrganizationContext(document.BranchId, null, document.OfficeId);
+    }
+    
     public DocumentTypeAuthorizationRequest(
         DocumentTypeId documentTypeId, PermissionId permissionId, OrganizationContext organizationContext = null)
     {

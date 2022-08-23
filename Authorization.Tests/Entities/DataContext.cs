@@ -58,9 +58,11 @@ public class DataContext
 
         Documents = new[]
         {
-            new Document { Id = 1, DocumentTypeId = DocumentTypeId.Account },
-            new Document { Id = 2, DocumentTypeId = DocumentTypeId.Account },
-            new Document { Id = 3, DocumentTypeId = DocumentTypeId.Guarantee },
+            new Document { Id = 1, BranchId = OrgStructure.BranchId, OfficeId = OrgStructure.OfficeId, DocumentTypeId = DocumentTypeId.Account },
+            new Document { Id = 2, BranchId = OrgStructure.BranchId, OfficeId = OrgStructure.OfficeId, DocumentTypeId = DocumentTypeId.Account },
+            new Document { Id = 3, BranchId = OrgStructure.BranchId, OfficeId = OrgStructure.OfficeId, DocumentTypeId = DocumentTypeId.Guarantee },
+            new Document { Id = 4, BranchId = OrgStructure.BranchId, OfficeId = 4, DocumentTypeId = DocumentTypeId.Account },
+            new Document { Id = 5, BranchId = OrgStructure.BranchId, OfficeId = 4, DocumentTypeId = DocumentTypeId.Guarantee },
         }.AsQueryable();
 
         DocumentTypes = new[]
@@ -167,6 +169,10 @@ public class Document
 {
     public long Id { get; set; }
 
+    public long BranchId { get; set; }
+    
+    public long OfficeId { get; set; }
+    
     public DocumentTypeId DocumentTypeId { get; set; }
 }
 
