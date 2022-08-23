@@ -141,8 +141,8 @@ public class DocumentFilterTests
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IPolicyRuleQuery<ResourcePolicyRule>, ResourcePolicyRuleQuery>();
         serviceCollection.AddSingleton<IPolicyRuleQuery<RolePolicyRule>, RolePolicyRuleQuery>();
-        serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, ResourcePermissionMatcher>();
-        serviceCollection.AddSingleton<IMatcher<AuthorizationRequest>, SuperuserMatcher>();
+        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
+        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, SuperuserMatcher>();
         serviceCollection.AddSingleton<IPolicyRuleQuery<DocumentPolicyRule>, DocumentPolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
         serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentSuperuserMatcher>();
@@ -200,7 +200,7 @@ public interface IDocumentAuthorizationRequest
     OrganizationContext OrganizationContext { get; }
 }
 
-public class DocumentFilterRequest : CurrentUserAuthorizationRequest, IDocumentAuthorizationRequest
+public class DocumentFilterRequest : ICurrentUserAuthorizationRequest, IDocumentAuthorizationRequest
 {
     public DocumentFilterRequest(OrganizationContext organizationContext = null, PermissionId permissionId = PermissionId.View)
     {
@@ -208,6 +208,8 @@ public class DocumentFilterRequest : CurrentUserAuthorizationRequest, IDocumentA
         OrganizationContext = organizationContext;
     }
 
+    public long UserId { get; set; }
+    
     public PermissionId PermissionId { get; }
     
     public OrganizationContext OrganizationContext { get; }

@@ -62,40 +62,36 @@ public class OrganizationContext
     public long? OfficeId { get; }
 }
 
-public interface ICurrentUserService
-{
-    long UserId { get; }
-}
-
-public interface ICurrentDateService
-{
-    DateTimeOffset UtcNow { get; }
-}
-
-public class CurrentDateService : ICurrentDateService
-{
-    public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
-}
-
-public class CurrentUserAuthorizationRequest
+public interface ICurrentUserAuthorizationRequest
 {
     public long UserId { get; set; }
 }
 
-public class AuthorizationRequest : CurrentUserAuthorizationRequest
+public class ResourceAuthorizationRequest : ICurrentUserAuthorizationRequest
 {
-    public AuthorizationRequest(SecurableId resource, PermissionId action, OrganizationContext organizationContext = null)
+    public ResourceAuthorizationRequest(SecurableId resource, PermissionId action, OrganizationContext organizationContext = null)
     {
         Resource = resource;
         Action = action;
         OrganizationContext = organizationContext;
     }
 
+    public long UserId { get; set; }
+    
     public SecurableId Resource { get; }
     
     public PermissionId Action { get; }
 
     public OrganizationContext OrganizationContext { get; }
+}
+
+public interface IOrganizationContextPolicyRule
+{
+    long? BranchId { get; }
+    
+    long? RegionalOfficeId { get; }
+    
+    long? OfficeId { get; }
 }
 
 public class ResourcePolicyRule : IOrganizationContextPolicyRule
@@ -111,15 +107,6 @@ public class ResourcePolicyRule : IOrganizationContextPolicyRule
     public long? RegionalOfficeId { get; set; }
     
     public long? OfficeId { get; set; }
-}
-
-public interface IOrganizationContextPolicyRule
-{
-    long? BranchId { get; set; }
-    
-    long? RegionalOfficeId { get; set; }
-    
-    long? OfficeId { get; set; }
 }
 
 public class RolePolicyRule : IOrganizationContextPolicyRule
@@ -167,14 +154,14 @@ public abstract class Matcher<TRequest, TPolicy> : IMatcher<TRequest>
     protected abstract IQueryable<PolicyEffect> Match(TRequest request, IQueryable<TPolicy> rules);
 }
 
-public class ResourcePermissionMatcher : Matcher<AuthorizationRequest, ResourcePolicyRule>
+public class ResourcePermissionMatcher : Matcher<ResourceAuthorizationRequest, ResourcePolicyRule>
 {
     public ResourcePermissionMatcher(IPolicyRuleQuery<ResourcePolicyRule> policyRuleQuery) 
         : base(policyRuleQuery)
     {
     }
 
-    protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<ResourcePolicyRule> rules)
+    protected override IQueryable<PolicyEffect> Match(ResourceAuthorizationRequest request, IQueryable<ResourcePolicyRule> rules)
     {
         return rules
             .Where(r => r.UserId == request.UserId &&
@@ -210,14 +197,14 @@ public static class OrganizationContentPolicyRuleEx
     }
 }
 
-public class SuperuserMatcher : SuperuserMatcherBase<AuthorizationRequest>
+public class SuperuserMatcher : SuperuserMatcherBase<ResourceAuthorizationRequest>
 {
     public SuperuserMatcher(IPolicyRuleQuery<RolePolicyRule> policyRuleQuery) 
         : base(policyRuleQuery)
     {
     }
 
-    protected override IQueryable<PolicyEffect> Match(AuthorizationRequest request, IQueryable<RolePolicyRule> rules)
+    protected override IQueryable<PolicyEffect> Match(ResourceAuthorizationRequest request, IQueryable<RolePolicyRule> rules)
     {
         return Match(request.UserId, rules);
     }
@@ -304,7 +291,7 @@ public class Enforcer
 
     public bool Enforce<TRequest>(EnforceContext context, TRequest request)
     {
-        if (request is CurrentUserAuthorizationRequest currentUserAuthorizationRequest)
+        if (request is ICurrentUserAuthorizationRequest currentUserAuthorizationRequest)
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
 
         var matchers = _serviceProvider.GetServices<IMatcher<TRequest>>().ToArray();
@@ -322,7 +309,7 @@ public class Enforcer
 
     public IQueryable<T> EnforceFilter<T, TRequest>(IQueryable<T> query, TRequest request)
     {
-        if (request is CurrentUserAuthorizationRequest currentUserAuthorizationRequest)
+        if (request is ICurrentUserAuthorizationRequest currentUserAuthorizationRequest)
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
 
         var filters = _serviceProvider.GetServices<IFilter<T, TRequest>>().ToArray();
