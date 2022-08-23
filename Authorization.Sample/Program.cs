@@ -47,7 +47,6 @@ public class OrganizationContext
         RegionalOfficeId = regionalOfficeId;
     }
 
-
     public OrganizationContext(long branchId, long? regionalOfficeId, long officeId)
     {
         BranchId = branchId;
@@ -65,6 +64,15 @@ public class OrganizationContext
 public interface ICurrentUserAuthorizationRequest
 {
     public long UserId { get; set; }
+}
+
+public interface IOrganizationContextRule
+{
+    long? BranchId { get; }
+    
+    long? RegionalOfficeId { get; }
+    
+    long? OfficeId { get; }
 }
 
 public class ResourceAuthorizationRequest : ICurrentUserAuthorizationRequest
@@ -85,16 +93,61 @@ public class ResourceAuthorizationRequest : ICurrentUserAuthorizationRequest
     public OrganizationContext OrganizationContext { get; }
 }
 
-public interface IOrganizationContextPolicyRule
+public class ResourceAuthorizationModel
 {
-    long? BranchId { get; }
-    
-    long? RegionalOfficeId { get; }
-    
-    long? OfficeId { get; }
+    public ResourceAuthorizationModel(
+        IQueryable<ResourcePolicyRule> resourcePolicyRules, 
+        IQueryable<RolePolicyRule> rolePolicyRules)
+    {
+        ResourcePolicyRules = resourcePolicyRules;
+        RolePolicyRules = rolePolicyRules;
+    }
+
+    public IQueryable<ResourcePolicyRule> ResourcePolicyRules { get; }
+
+    public IQueryable<RolePolicyRule> RolePolicyRules { get; }
+
+    public bool IsSuperuser(long userId)
+    {
+        return RolePolicyRules.Any(r => r.UserId == userId && r.RoleName == "Superuser");
+    }
+
+    public bool HasPermission(long userId, SecurableId securableId, PermissionId permissionId, OrganizationContext ctx)
+    {
+        var query = ResourcePolicyRules
+            .Where(r => r.UserId == userId && 
+                        (r.Resource == securableId || r.Resource == SecurableId.Any) &&
+                        (r.Action == permissionId || r.Action == PermissionId.Any));
+
+        query = ApplyOrganizationContextFilter(query, ctx);
+
+        return query.Any();
+    }
+
+    public IQueryable<T> ApplyOrganizationContextFilter<T>(IQueryable<T> query, OrganizationContext ctx)
+        where T : IOrganizationContextRule
+    {
+        if (ctx == null)
+        {
+            query = query
+                .Where(r => r.BranchId == null && r.RegionalOfficeId == null && r.OfficeId == null);
+        }
+        else
+        {
+            query = query
+                .Where(r => (r.BranchId == null && r.RegionalOfficeId == null && r.OfficeId == null) ||
+                            (r.BranchId == ctx.BranchId && 
+                             (r.RegionalOfficeId == null || 
+                              (ctx.RegionalOfficeId == null && ctx.OfficeId != null) || 
+                              (r.RegionalOfficeId == ctx.RegionalOfficeId)) && 
+                             (r.OfficeId == null || r.OfficeId == ctx.OfficeId)));
+        }
+
+        return query;
+    }
 }
 
-public class ResourcePolicyRule : IOrganizationContextPolicyRule
+public class ResourcePolicyRule : IOrganizationContextRule
 {
     public long UserId { get; set; }
     
@@ -109,17 +162,11 @@ public class ResourcePolicyRule : IOrganizationContextPolicyRule
     public long? OfficeId { get; set; }
 }
 
-public class RolePolicyRule : IOrganizationContextPolicyRule
+public class RolePolicyRule
 {
     public long UserId { get; set; }
 
     public string RoleName { get; set; }
-    
-    public long? BranchId { get; set; }
-    
-    public long? RegionalOfficeId { get; set; }
-    
-    public long? OfficeId { get; set; }
 }
 
 public enum PolicyEffect
@@ -127,162 +174,48 @@ public enum PolicyEffect
     Allow, Deny
 }
 
-public interface IPolicyRuleQuery<out TPolicy>
+public interface IAuthorizationModelFactory<out TModel>
 {
-    public IQueryable<TPolicy> PrepareQuery();
+    public TModel PrepareModel();
 }
 
 public interface IMatcher<in TRequest>
 {
-    IQueryable<PolicyEffect> Match(TRequest request);
+    IEnumerable<PolicyEffect> Match(TRequest request);
 }
 
-public abstract class Matcher<TRequest, TPolicy> : IMatcher<TRequest>
+public abstract class Matcher<TRequest, TModel> : IMatcher<TRequest>
 {
-    private readonly IPolicyRuleQuery<TPolicy> _policyRuleQuery;
+    private readonly IAuthorizationModelFactory<TModel> _modelFactory;
 
-    protected Matcher(IPolicyRuleQuery<TPolicy> policyRuleQuery)
+    protected Matcher(IAuthorizationModelFactory<TModel> modelFactory)
     {
-        _policyRuleQuery = policyRuleQuery;
+        _modelFactory = modelFactory;
     }
 
-    public IQueryable<PolicyEffect> Match(TRequest request)
+    public IEnumerable<PolicyEffect> Match(TRequest request)
     {
-        return Match(request, _policyRuleQuery.PrepareQuery());
+        return Match(request, _modelFactory.PrepareModel());
     }
 
-    protected abstract IQueryable<PolicyEffect> Match(TRequest request, IQueryable<TPolicy> rules);
+    protected abstract IEnumerable<PolicyEffect> Match(TRequest request, TModel model);
 }
 
-public class ResourcePermissionMatcher : Matcher<ResourceAuthorizationRequest, ResourcePolicyRule>
+public class ResourcePermissionMatcher : Matcher<ResourceAuthorizationRequest, ResourceAuthorizationModel>
 {
-    public ResourcePermissionMatcher(IPolicyRuleQuery<ResourcePolicyRule> policyRuleQuery) 
-        : base(policyRuleQuery)
+    public ResourcePermissionMatcher(IAuthorizationModelFactory<ResourceAuthorizationModel> modelFactory) 
+        : base(modelFactory)
     {
     }
 
-    protected override IQueryable<PolicyEffect> Match(ResourceAuthorizationRequest request, IQueryable<ResourcePolicyRule> rules)
+    protected override IEnumerable<PolicyEffect> Match(ResourceAuthorizationRequest request, ResourceAuthorizationModel model)
     {
-        return rules
-            .Where(r => r.UserId == request.UserId &&
-                        (r.Resource == request.Resource || r.Resource == SecurableId.Any) &&
-                        (r.Action == request.Action || r.Action == PermissionId.Any))
-            .ApplyOrganizationContextFilter(request.OrganizationContext)
-            .Select(r => PolicyEffect.Allow);
+        if (model.IsSuperuser(request.UserId))
+            yield return PolicyEffect.Allow;
+
+        if (model.HasPermission(request.UserId, request.Resource, request.Action, request.OrganizationContext))
+            yield return PolicyEffect.Allow;
     }
-}
-
-public static class OrganizationContentPolicyRuleEx
-{
-    public static IQueryable<T> ApplyOrganizationContextFilter<T>(this IQueryable<T> query, OrganizationContext ctx)
-        where T : IOrganizationContextPolicyRule
-    {
-        if (ctx == null)
-        {
-            query = query
-                .Where(r => r.BranchId == null &&
-                            r.RegionalOfficeId == null &&
-                            r.OfficeId == null);
-        }
-        else
-        {
-            query = query
-                .Where(r => (r.BranchId == null && r.RegionalOfficeId == null && r.OfficeId == null) ||
-                            (r.BranchId == ctx.BranchId && 
-                             (r.RegionalOfficeId == null || (ctx.RegionalOfficeId == null && ctx.OfficeId != null) || r.RegionalOfficeId == ctx.RegionalOfficeId) && 
-                             (r.OfficeId == null || r.OfficeId == ctx.OfficeId)));
-        }
-
-        return query;
-    }
-}
-
-public class SuperuserMatcher : SuperuserMatcherBase<ResourceAuthorizationRequest>
-{
-    public SuperuserMatcher(IPolicyRuleQuery<RolePolicyRule> policyRuleQuery) 
-        : base(policyRuleQuery)
-    {
-    }
-
-    protected override IQueryable<PolicyEffect> Match(ResourceAuthorizationRequest request, IQueryable<RolePolicyRule> rules)
-    {
-        return Match(request.UserId, rules);
-    }
-}
-
-public abstract class SuperuserMatcherBase<TRequest> : Matcher<TRequest, RolePolicyRule>
-{
-    protected SuperuserMatcherBase(IPolicyRuleQuery<RolePolicyRule> policyRuleQuery) 
-        : base(policyRuleQuery)
-    {
-    }
-    
-    protected IQueryable<PolicyEffect> Match(long userId, IQueryable<RolePolicyRule> rules)
-    {
-        return rules
-            .Where(r => r.UserId == userId && r.RoleName == "Superuser")
-            .Select(r => PolicyEffect.Allow);
-    }
-}
-
-public interface IEffector<TRequest>
-{
-    bool Apply(IReadOnlyCollection<IMatcher<TRequest>> matchers, TRequest request);
-}
-
-public interface IFilterEffector<T, TRequest>
-{
-    IQueryable<T> Apply(IReadOnlyCollection<IFilter<T, TRequest>> filters, IQueryable<T> query, TRequest request);
-}
-
-public class AllowOverrideFilterEffector<T, TRequest> : IFilterEffector<T, TRequest>
-{
-    public IQueryable<T> Apply(IReadOnlyCollection<IFilter<T, TRequest>> filters, IQueryable<T> query, TRequest request)
-    {
-        return filters.Select(f => f.Apply(query, request)).Aggregate((q1, q2) => q1.Union(q2));
-    }
-}
-
-public class DenyOverrideFilterEffector<T, TRequest> : IFilterEffector<T, TRequest>
-{
-    public IQueryable<T> Apply(IReadOnlyCollection<IFilter<T, TRequest>> filters, IQueryable<T> query, TRequest request)
-    {
-        return filters.Select(f => f.Apply(query, request)).Aggregate((q1, q2) => q1.Intersect(q2));
-    }
-}
-
-public class AllowOverrideEffector<TRequest> : IEffector<TRequest>
-{
-    public bool Apply(IReadOnlyCollection<IMatcher<TRequest>> matchers, TRequest request)
-    {
-        return matchers.SelectMany(m => m.Match(request)).Any(e => e == PolicyEffect.Allow);
-    }
-}
-
-public class DenyOverrideEffector<TRequest> : IEffector<TRequest>
-{
-    public bool Apply(IReadOnlyCollection<IMatcher<TRequest>> matchers, TRequest request)
-    {
-        return matchers.SelectMany(m => m.Match(request)).All(e => e == PolicyEffect.Allow);
-    }
-}
-
-public enum Effector
-{
-    AllowOverride, 
-    DenyOverride
-}
-
-public class EnforceContext
-{
-    internal static readonly EnforceContext Default = new EnforceContext();
-    
-    public EnforceContext()
-    {
-        Effector = Effector.AllowOverride;
-    }
-    
-    public Effector Effector { get; set; }
 }
 
 public class Enforcer
@@ -296,73 +229,47 @@ public class Enforcer
         _currentUserService = currentUserService;
     }
 
-    public bool Enforce<TRequest>(TRequest request) 
-        => Enforce(EnforceContext.Default, request);
-
-    public bool Enforce<TRequest>(EnforceContext context, TRequest request)
+    public bool Enforce<TRequest>(TRequest request)
     {
         if (request is ICurrentUserAuthorizationRequest currentUserAuthorizationRequest)
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
 
-        var matchers = _serviceProvider.GetServices<IMatcher<TRequest>>().ToArray();
-        var effector = CreateEffector<TRequest>(context.Effector);
-
-        return effector.Apply(matchers, request);
+        var matcher = _serviceProvider.GetService<IMatcher<TRequest>>()!;
+        
+        var effects = matcher.Match(request);
+        
+        return effects.Any(e => e == PolicyEffect.Allow);
     }
 
     public IQueryable<T> EnforceFilter<T, TRequest>(IQueryable<T> query, TRequest request)
-        => EnforceFilter(EnforceContext.Default, query, request);
-
-    public IQueryable<T> EnforceFilter<T, TRequest>(EnforceContext context, IQueryable<T> query, TRequest request)
     {
         if (request is ICurrentUserAuthorizationRequest currentUserAuthorizationRequest)
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
 
-        var filters = _serviceProvider.GetServices<IFilter<T, TRequest>>().ToArray();
-        var effector = CreateEffector<T, TRequest>(context.Effector);
+        var filter = _serviceProvider.GetService<IFilter<T, TRequest>>()!;
 
-        return effector.Apply(filters, query, request);
-    }
-
-    private IEffector<TRequest> CreateEffector<TRequest>(Effector effector)
-    {
-        return effector switch
-        {
-            Effector.AllowOverride => new AllowOverrideEffector<TRequest>(),
-            Effector.DenyOverride => new DenyOverrideEffector<TRequest>(),
-            _ => throw new ArgumentOutOfRangeException(nameof(effector))
-        };
-    }
-    
-    private IFilterEffector<T, TRequest> CreateEffector<T, TRequest>(Effector effector)
-    {
-        return effector switch
-        {
-            Effector.AllowOverride => new AllowOverrideFilterEffector<T, TRequest>(),
-            Effector.DenyOverride => new AllowOverrideFilterEffector<T, TRequest>(),
-            _ => throw new ArgumentOutOfRangeException(nameof(effector))
-        };
+        return filter.Apply(query, request);
     }
 }
 
 public interface IFilter<T, in TContext>
 {
-    IQueryable<T> Apply(IQueryable<T> query, TContext context);
+    IQueryable<T> Apply(IQueryable<T> query, TContext request);
 }
 
-public abstract class Filter<T, TContext, TPolicy> : IFilter<T, TContext>
+public abstract class Filter<T, TContext, TModel> : IFilter<T, TContext>
 {
-    private readonly IPolicyRuleQuery<TPolicy> _rules;
+    private readonly IAuthorizationModelFactory<TModel> _modelFactory;
 
-    protected Filter(IPolicyRuleQuery<TPolicy> rules)
+    protected Filter(IAuthorizationModelFactory<TModel> modelFactory)
     {
-        _rules = rules;
+        _modelFactory = modelFactory;
     }
 
-    public IQueryable<T> Apply(IQueryable<T> query, TContext context)
+    public IQueryable<T> Apply(IQueryable<T> query, TContext request)
     {
-        return Apply(query, context, _rules.PrepareQuery());
+        return Apply(query, request, _modelFactory.PrepareModel());
     }
 
-    protected abstract IQueryable<T> Apply(IQueryable<T> query, TContext context, IQueryable<TPolicy> rules);
+    protected abstract IQueryable<T> Apply(IQueryable<T> query, TContext request, TModel model);
 }

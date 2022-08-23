@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Authorization.Sample;
 using Authorization.Tests.Entities;
@@ -186,21 +187,17 @@ public class DocumentEnforcerTests
         serviceCollection.AddSingleton(new DataContext());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
-        serviceCollection.AddSingleton<IPolicyRuleQuery<ResourcePolicyRule>, ResourcePolicyRuleQuery>();
-        serviceCollection.AddSingleton<IPolicyRuleQuery<RolePolicyRule>, RolePolicyRuleQuery>();
+        serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
+        serviceCollection.AddSingleton<IAuthorizationModelFactory<DocumentAuthorizationModel>, DocumentAuthorizationModelFactory>();
         serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
-        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, SuperuserMatcher>();
-        serviceCollection.AddSingleton<IPolicyRuleQuery<DocumentPolicyRule>, DocumentPolicyRuleQuery>();
         serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
-        serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentSuperuserMatcher>();
-        serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentSupervisorMatcher>();
         serviceCollection.AddSingleton<Enforcer>();
 
         return serviceCollection.BuildServiceProvider().GetService<Enforcer>();
     }
 }
 
-public class DocumentPolicyRule : IOrganizationContextPolicyRule
+public class DocumentPolicyRule : IOrganizationContextRule
 {
     public long UserId { get; set; }
 
@@ -215,25 +212,33 @@ public class DocumentPolicyRule : IOrganizationContextPolicyRule
     public long? OfficeId { get; set; }
 }
 
-public class DocumentPolicyRuleQuery : IPolicyRuleQuery<DocumentPolicyRule>
+public class DocumentAuthorizationModelFactory : ResourceAuthorizationModelFactory, IAuthorizationModelFactory<DocumentAuthorizationModel>
 {
     private readonly DataContext _context;
     private readonly ICurrentDateService _dateService;
 
-    public DocumentPolicyRuleQuery(DataContext context, ICurrentDateService dateService)
+    public DocumentAuthorizationModelFactory(DataContext context, ICurrentDateService dateService) 
+        : base(context, dateService)
     {
         _context = context;
         _dateService = dateService;
     }
     
-    public IQueryable<DocumentPolicyRule> PrepareQuery()
+    public new DocumentAuthorizationModel PrepareModel()
     {
-        var utcNow = _dateService.UtcNow;
+        var model = new DocumentAuthorizationModel(
+            GetResourcePolicyRules(), 
+            GetRolePolicyRules(), 
+            GetDocumentPolicyRules());
         
-        var query =
-            from bankUserRole in _context.BankUserRoles
+        return model;
+    }
+
+    protected IQueryable<DocumentPolicyRule> GetDocumentPolicyRules()
+    {
+        return from bankUserRole in _context.BankUserRoles
             join documentTypeRolePermission in _context.DocumentTypeRolePermissions on bankUserRole.RoleId equals documentTypeRolePermission.RoleId
-            where bankUserRole.EndDate == null || bankUserRole.EndDate > utcNow 
+            where bankUserRole.EndDate == null || bankUserRole.EndDate > _dateService.UtcNow 
             select new DocumentPolicyRule
             { 
                 UserId = (long) bankUserRole.BankUserId,
@@ -243,58 +248,64 @@ public class DocumentPolicyRuleQuery : IPolicyRuleQuery<DocumentPolicyRule>
                 RegionalOfficeId = bankUserRole.RegionalOfficeId,
                 OfficeId = bankUserRole.OfficeId
             };
-
-        return query;
     }
 }
 
-public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, DocumentPolicyRule>
+public class DocumentAuthorizationModel : ResourceAuthorizationModel
 {
-    public DocumentMatcher(IPolicyRuleQuery<DocumentPolicyRule> policyRuleQuery) 
-        : base(policyRuleQuery)
+    public IQueryable<DocumentPolicyRule> DocumentPolicyRules { get; }
+
+    public DocumentAuthorizationModel(
+        IQueryable<ResourcePolicyRule> resourcePolicyRules, 
+        IQueryable<RolePolicyRule> rolePolicyRules, 
+        IQueryable<DocumentPolicyRule> documentPolicyRules) 
+        : base(resourcePolicyRules, rolePolicyRules)
     {
+        DocumentPolicyRules = documentPolicyRules;
     }
 
-    protected override IQueryable<PolicyEffect> Match(DocumentAuthorizationRequest request, IQueryable<DocumentPolicyRule> rules)
+    public bool HasAnyDocumentAccess(long userId)
     {
-        return rules
-            .ApplyFilters(request)
-            .Where(r => r.DocumentTypeId == request.DocumentTypeId)
-            .Select(r => PolicyEffect.Allow);
+        // user, any, any - супервизор
+        // user, doc, any - имеет доступ ко всем типам документов
+        return ResourcePolicyRules
+            .Any(r => r.UserId == userId &&
+                      (r.Resource == SecurableId.Document || r.Resource == SecurableId.Any) &&
+                      (r.Action == PermissionId.Any));
     }
 }
 
-public class DocumentSuperuserMatcher : SuperuserMatcherBase<DocumentAuthorizationRequest>
+public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, DocumentAuthorizationModel>
 {
-    public DocumentSuperuserMatcher(IPolicyRuleQuery<RolePolicyRule> policyRuleQuery) 
-        : base(policyRuleQuery)
+    public DocumentMatcher(IAuthorizationModelFactory<DocumentAuthorizationModel> modelFactory) 
+        : base(modelFactory)
     {
     }
 
-    protected override IQueryable<PolicyEffect> Match(DocumentAuthorizationRequest request, IQueryable<RolePolicyRule> rules)
+    protected override IEnumerable<PolicyEffect> Match(DocumentAuthorizationRequest request, DocumentAuthorizationModel model)
     {
-        return Match(request.UserId, rules);
-    }
-}
+        if (model.IsSuperuser(request.UserId))
+            yield return PolicyEffect.Allow;
+        
+        if (model.HasAnyDocumentAccess(request.UserId))
+            yield return PolicyEffect.Allow;
 
-public class DocumentSupervisorMatcher : Matcher<DocumentAuthorizationRequest, ResourcePolicyRule>
-{
-    public DocumentSupervisorMatcher(IPolicyRuleQuery<ResourcePolicyRule> policyRuleQuery) 
-        : base(policyRuleQuery)
-    {
-    }
-
-    protected override IQueryable<PolicyEffect> Match(DocumentAuthorizationRequest request, IQueryable<ResourcePolicyRule> rules)
-    {
-        return rules
+        var query = model.DocumentPolicyRules
             .Where(r => r.UserId == request.UserId &&
-                       (r.Resource == SecurableId.Document || r.Resource == SecurableId.Any) &&
-                        r.Action == PermissionId.Any)
-            .Select(r => PolicyEffect.Allow);
+                        r.DocumentTypeId == request.DocumentTypeId &&
+                        r.PermissionId == request.PermissionId);
+
+        query = model.ApplyOrganizationContextFilter(query, request.OrganizationContext);
+        
+        // проверка на доступ по типу документов
+        if (query.Any())
+        {
+            yield return PolicyEffect.Allow;
+        }
     }
 }
 
-public class DocumentAuthorizationRequest : ICurrentUserAuthorizationRequest, IDocumentAuthorizationRequest
+public class DocumentAuthorizationRequest : ICurrentUserAuthorizationRequest //, IDocumentAuthorizationRequest
 {
     public DocumentAuthorizationRequest(Document document, PermissionId permissionId)
     {

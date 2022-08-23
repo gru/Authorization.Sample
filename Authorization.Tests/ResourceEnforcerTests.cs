@@ -128,10 +128,8 @@ public class ResourceEnforcerTests
         serviceCollection.AddSingleton(new DataContext());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
-        serviceCollection.AddSingleton<IPolicyRuleQuery<ResourcePolicyRule>, ResourcePolicyRuleQuery>();
-        serviceCollection.AddSingleton<IPolicyRuleQuery<RolePolicyRule>, RolePolicyRuleQuery>();
+        serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
         serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
-        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, SuperuserMatcher>();
         serviceCollection.AddSingleton<Enforcer>();
 
         return serviceCollection.BuildServiceProvider().GetService<Enforcer>();
@@ -169,25 +167,28 @@ public static class OrgContextCount
     public const int OfficeTakeCount = 3;
 }
 
-public class ResourcePolicyRuleQuery : IPolicyRuleQuery<ResourcePolicyRule>
+public class ResourceAuthorizationModelFactory : IAuthorizationModelFactory<ResourceAuthorizationModel>
 {
     private readonly DataContext _context;
     private readonly ICurrentDateService _dateService;
 
-    public ResourcePolicyRuleQuery(DataContext context, ICurrentDateService dateService)
+    public ResourceAuthorizationModelFactory(DataContext context, ICurrentDateService dateService)
     {
         _context = context;
         _dateService = dateService;
     }
-    
-    public IQueryable<ResourcePolicyRule> PrepareQuery()
+
+    public ResourceAuthorizationModel PrepareModel()
     {
-        var utcNow = _dateService.UtcNow;
-        
-        var query =
-            from bankUserRole in _context.BankUserRoles
+        var model = new ResourceAuthorizationModel(GetResourcePolicyRules(), GetRolePolicyRules());
+        return model;
+    }
+
+    protected IQueryable<ResourcePolicyRule> GetResourcePolicyRules()
+    {
+        return from bankUserRole in _context.BankUserRoles
             join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
-            where bankUserRole.EndDate == null || bankUserRole.EndDate > utcNow
+            where bankUserRole.EndDate == null || bankUserRole.EndDate > _dateService.UtcNow
             select new ResourcePolicyRule
             {
                 UserId = (long) bankUserRole.BankUserId, 
@@ -197,37 +198,17 @@ public class ResourcePolicyRuleQuery : IPolicyRuleQuery<ResourcePolicyRule>
                 RegionalOfficeId = bankUserRole.RegionalOfficeId,
                 OfficeId = bankUserRole.OfficeId
             };
-        return query;
     }
-}
 
-public class RolePolicyRuleQuery : IPolicyRuleQuery<RolePolicyRule>
-{
-    private readonly DataContext _context;
-    private readonly ICurrentDateService _dateService;
-
-    public RolePolicyRuleQuery(DataContext context, ICurrentDateService dateService)
+    protected IQueryable<RolePolicyRule> GetRolePolicyRules()
     {
-        _context = context;
-        _dateService = dateService;
-    }
-    
-    public IQueryable<RolePolicyRule> PrepareQuery()
-    {
-        var utcNow = _dateService.UtcNow;
-        
-        var query =
-            from bankUserRole in _context.BankUserRoles
+        return from bankUserRole in _context.BankUserRoles
             join role in _context.Roles on bankUserRole.RoleId equals role.Id
-            where bankUserRole.EndDate == null || bankUserRole.EndDate > utcNow
+            where bankUserRole.EndDate == null || bankUserRole.EndDate > _dateService.UtcNow
             select new RolePolicyRule
             {
                 UserId = (long) bankUserRole.BankUserId, 
                 RoleName = role.Name, 
-                BranchId = bankUserRole.BranchId,
-                RegionalOfficeId = bankUserRole.RegionalOfficeId,
-                OfficeId = bankUserRole.OfficeId
             };
-        return query;
     }
 }
