@@ -1,0 +1,50 @@
+GET http://localhost:5136/document?userId=Superuser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=BranchUser&branchId=1&officeId=3
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=BranchUser&branchId=2&officeId=3
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=BranchUser&branchId=2&officeId=3
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=BranchUser&branchId=2
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=BranchUser&branchId=2
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=BranchUser&branchId=1
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=Superuser
+Accept: application/json
+
+###
+

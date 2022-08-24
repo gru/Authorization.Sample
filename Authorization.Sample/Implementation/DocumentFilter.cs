@@ -11,6 +11,9 @@ public class DocumentFilter : Filter<Document, DocumentFilterRequest, DocumentAu
     
     protected override IQueryable<Document> Apply(IQueryable<Document> query, DocumentFilterRequest request, DocumentAuthorizationModel model)
     {
+        if (model.IsSuperuser(request.UserId))
+            return query;
+
         if (model.HasAnyDocumentAccess(request.UserId))
             return query;
         

@@ -5,12 +5,21 @@ namespace Authorization.Sample.Implementation;
 public class ResourceAuthorizationModel
 {
     public ResourceAuthorizationModel(
-        IQueryable<ResourcePolicyRule> resourcePolicyRules)
+        IQueryable<ResourcePolicyRule> resourcePolicyRules, 
+        IQueryable<RolePolicyRule> rolePolicyRules)
     {
         ResourcePolicyRules = resourcePolicyRules;
+        RolePolicyRules = rolePolicyRules;
     }
 
     public IQueryable<ResourcePolicyRule> ResourcePolicyRules { get; }
+
+    public IQueryable<RolePolicyRule> RolePolicyRules { get; }
+
+    public bool IsSuperuser(long userId)
+    {
+        return RolePolicyRules.Any(r => r.UserId == userId && r.RoleName == "Superuser");
+    }
 
     public bool HasPermission(long userId, SecurableId securableId, PermissionId permissionId, OrganizationContext ctx)
     {

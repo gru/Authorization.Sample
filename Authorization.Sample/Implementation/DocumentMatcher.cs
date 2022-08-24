@@ -9,6 +9,9 @@ public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, DocumentAut
 
     protected override IEnumerable<PolicyEffect> Match(DocumentAuthorizationRequest request, DocumentAuthorizationModel model)
     {
+        if (model.IsSuperuser(request.UserId))
+            yield return PolicyEffect.Allow;
+        
         if (model.HasAnyDocumentAccess(request.UserId))
             yield return PolicyEffect.Allow;
 

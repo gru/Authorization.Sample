@@ -82,6 +82,25 @@ public class ResourceEnforcerTests
     }
     
     [Fact]
+    public void Enforce_Superuser_Permissions()
+    {
+        var enforcer = CreateEnforcer(BankUserId.Superuser);
+        
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
+    }
+
+    [Theory]
+    [ClassData(typeof(OrgStructureClassData))]
+    public void Enforce_Superuser_Permissions_With_OrgContext(OrganizationContext organizationContext)
+    {
+        var enforcer = CreateEnforcer(BankUserId.Superuser);
+        
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View, organizationContext)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change, organizationContext)));
+    }
+
+    [Fact]
     public void Enforce_Supervisor_Permissions()
     {
         var enforcer = CreateEnforcer(BankUserId.Supervisor);

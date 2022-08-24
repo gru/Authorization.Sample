@@ -19,7 +19,7 @@ public class ResourceAuthorizationModelFactory : IAuthorizationModelFactory<Reso
 
     public ResourceAuthorizationModel PrepareModel()
     {
-        var model = new ResourceAuthorizationModel(GetResourcePolicyRules());
+        var model = new ResourceAuthorizationModel(GetResourcePolicyRules(), GetRolePolicyRules());
         return model;
     }
 
@@ -37,6 +37,18 @@ public class ResourceAuthorizationModelFactory : IAuthorizationModelFactory<Reso
                 BranchId = bankUserRole.BranchId,
                 RegionalOfficeId = bankUserRole.RegionalOfficeId,
                 OfficeId = bankUserRole.OfficeId
+            };
+    }
+
+    protected IQueryable<RolePolicyRule> GetRolePolicyRules()
+    {
+        return from bankUserRole in _context.BankUserRoles
+            join role in _context.Roles on bankUserRole.RoleId equals role.Id
+            where bankUserRole.EndDate == null || bankUserRole.EndDate > _dateService.UtcNow
+            select new RolePolicyRule
+            {
+                UserId = (long) bankUserRole.BankUserId, 
+                RoleName = role.Name, 
             };
     }
 }

@@ -20,7 +20,7 @@ Content-Type: application/json
 
 ###
 # запросить все документы как суперпользотваль
-GET http://localhost:5136/document?userId=Supervisor
+GET http://localhost:5136/document?userId=Superuser
 Accept: application/json
 
 ###

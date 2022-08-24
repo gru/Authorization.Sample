@@ -21,6 +21,7 @@ public class DocumentAuthorizationModelFactory : ResourceAuthorizationModelFacto
     {
         var model = new DocumentAuthorizationModel(
             GetResourcePolicyRules(), 
+            GetRolePolicyRules(), 
             GetDocumentPolicyRules());
         
         return model;
