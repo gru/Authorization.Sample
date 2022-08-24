@@ -21,9 +21,9 @@ public class DocumentAuthorizationRequest : ICurrentUserAuthorizationRequest
     
     public long UserId { get; set; }
     
+    public OrganizationContext OrganizationContext { get; set; }
+    
     public DocumentTypeId DocumentTypeId { get; }
 
     public PermissionId PermissionId { get; }
-
-    public OrganizationContext OrganizationContext { get; }
 }

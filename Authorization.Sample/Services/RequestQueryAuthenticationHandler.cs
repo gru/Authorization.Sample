@@ -15,15 +15,12 @@ public class RequestQueryAuthenticationHandler : AuthenticationHandler<RequestQu
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (Request.Query.TryGetValue(Options.UserIdParameter, out var userIdValue))
+        if (Request.Query.TryGetValue(Options.UserIdParameter, out var userIdValue) &&
+            Enum.TryParse<BankUserId>(userIdValue, out var userIdEnum))
         {
-            if (Enum.TryParse<BankUserId>(userIdValue, out var userIdEnumValue))
-                userIdValue = ((int)userIdEnumValue).ToString();
-            else if (int.TryParse(userIdValue, out var userIdIntValue))
-                userIdValue = userIdIntValue.ToString();
-            else return Task.FromResult(AuthenticateResult.Fail($"Unable to parse \"{Options.UserIdParameter}\" query parameter"));
+            var userId = ((int)userIdEnum).ToString();
             
-            var claims = new[] { new Claim(ClaimTypes.Name, userIdValue) };
+            var claims = new[] { new Claim(ClaimTypes.Name, userId) };
             var identity = new ClaimsIdentity(claims, nameof(RequestQueryAuthenticationHandler));
             var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name);
             

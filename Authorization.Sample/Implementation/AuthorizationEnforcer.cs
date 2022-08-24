@@ -16,7 +16,10 @@ public class AuthorizationEnforcer
     public bool Enforce<TRequest>(TRequest request)
     {
         if (request is ICurrentUserAuthorizationRequest currentUserAuthorizationRequest)
+        {
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
+            currentUserAuthorizationRequest.OrganizationContext = _currentUserService.OrganizationContext;
+        }
 
         var matcher = _serviceProvider.GetService<IMatcher<TRequest>>()!;
         
@@ -28,7 +31,10 @@ public class AuthorizationEnforcer
     public IQueryable<T> EnforceFilter<T, TRequest>(IQueryable<T> query, TRequest request)
     {
         if (request is ICurrentUserAuthorizationRequest currentUserAuthorizationRequest)
+        {
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
+            currentUserAuthorizationRequest.OrganizationContext = _currentUserService.OrganizationContext;
+        }
 
         var filter = _serviceProvider.GetService<IFilter<T, TRequest>>()!;
 

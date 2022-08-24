@@ -11,8 +11,8 @@ public class DocumentFilterRequest : ICurrentUserAuthorizationRequest
     }
 
     public long UserId { get; set; }
-    
+
+    public OrganizationContext OrganizationContext { get; set; }
+
     public PermissionId PermissionId { get; }
-    
-    public OrganizationContext OrganizationContext { get; }
 }

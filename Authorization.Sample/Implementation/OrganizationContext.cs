@@ -20,6 +20,13 @@ public class OrganizationContext
         OfficeId = officeId;
     }
 
+    internal OrganizationContext(long branchId, long? regionalOfficeId, long? officeId)
+    {
+        BranchId = branchId;
+        RegionalOfficeId = regionalOfficeId;
+        OfficeId = officeId;
+    }
+
     public long BranchId { get; }
     
     public long? RegionalOfficeId { get; }

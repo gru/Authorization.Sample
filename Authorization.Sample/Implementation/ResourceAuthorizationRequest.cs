@@ -13,9 +13,9 @@ public class ResourceAuthorizationRequest : ICurrentUserAuthorizationRequest
 
     public long UserId { get; set; }
     
+    public OrganizationContext OrganizationContext { get; set; }
+    
     public SecurableId Resource { get; }
     
     public PermissionId Action { get; }
-
-    public OrganizationContext OrganizationContext { get; }
 }

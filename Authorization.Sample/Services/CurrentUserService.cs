@@ -1,3 +1,5 @@
+using Authorization.Sample.Implementation;
+
 namespace Authorization.Sample.Services;
 
 public class CurrentUserService : ICurrentUserService
@@ -18,6 +20,34 @@ public class CurrentUserService : ICurrentUserService
                 return userId;
 
             return 0;
+        }
+    }
+
+    public OrganizationContext OrganizationContext
+    {
+        get
+        {
+            var query = _httpContextAccessor.HttpContext?.Request.Query;
+            if (query != null)
+            {
+                if (query.TryGetValue("branchId", out var branchIdString) && 
+                    long.TryParse(branchIdString, out var branchId))
+                {
+                    long? regionalOfficeId = 
+                        query.TryGetValue("regionalOfficeId", out var regionalOfficeIdString) && long.TryParse(regionalOfficeIdString, out var regionalOfficeIdValue)
+                            ? regionalOfficeIdValue
+                            : null;
+
+                    long? officeId = 
+                        query.TryGetValue("regionalOfficeId", out var officeIdString) && long.TryParse(officeIdString, out var officeIdValue)
+                        ? officeIdValue
+                        : null;
+                    
+                    return new OrganizationContext(branchId, regionalOfficeId, officeId);
+                }
+            }
+
+            return null;
         }
     }
 }

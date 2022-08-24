@@ -1,0 +1,35 @@
+# запросить все документы как суперпользотваль
+GET http://localhost:5136/document?userId=Superuser
+Accept: application/json
+
+###
+
+# запросить все документы как банковский пользотваль
+GET http://localhost:5136/document?userId=BankUser
+Accept: application/json
+
+###
+
+# запросить все документы как банковский пользотваль
+GET http://localhost:5136/document?userId=BankUser
+Accept: application/json
+
+###
+
+# запросить все документы как банковский пользователь у которого есть права в branchId=1 (см. класс OrgStructure)
+GET http://localhost:5136/document?userId=BranchUser&branchId=1
+Accept: application/json
+
+###
+
+# запросить все документы как банковский пользователь у которого есть права в branchId=1 из другого branchId=2 (см. класс OrgStructure)
+GET http://localhost:5136/document?userId=BranchUser&branchId=2
+Accept: application/json
+
+###
+
+# запросить все документы как банковский пользователь у которого есть права в branchId=1 и officeId=3, regionalOfficeId может быть опущен (см. класс OrgStructure)
+GET http://localhost:5136/document?userId=BranchUser&branchId=1&officeId=3
+Accept: application/json
+
+###
