@@ -1,7 +1,8 @@
 using System;
 using System.Linq;
-using Authorization.Sample;
-using Authorization.Tests.Entities;
+using Authorization.Sample.Entities;
+using Authorization.Sample.Implementation;
+using Authorization.Sample.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -133,73 +134,19 @@ public class DocumentFilterTests
         Assert.Equal(5, documents.Length);
     }
     
-    private static Enforcer CreateEnforcer(BankUserId currentUser)
+    private static AuthorizationEnforcer CreateEnforcer(BankUserId currentUser)
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton(new DataContext());
-        serviceCollection.AddSingleton<ICurrentUserService>(new TestUserService(currentUser));
+        serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
         serviceCollection.AddSingleton<IAuthorizationModelFactory<DocumentAuthorizationModel>, DocumentAuthorizationModelFactory>();
         serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
         serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
         serviceCollection.AddSingleton<IFilter<Document, DocumentFilterRequest>, DocumentFilter>();
-        serviceCollection.AddSingleton<Enforcer>();
+        serviceCollection.AddSingleton<AuthorizationEnforcer>();
 
-        return serviceCollection.BuildServiceProvider().GetService<Enforcer>();
-    }
-}
-
-public class DocumentFilterRequest : ICurrentUserAuthorizationRequest
-{
-    public DocumentFilterRequest(OrganizationContext organizationContext = null, PermissionId permissionId = PermissionId.View)
-    {
-        PermissionId = permissionId;
-        OrganizationContext = organizationContext;
-    }
-
-    public long UserId { get; set; }
-    
-    public PermissionId PermissionId { get; }
-    
-    public OrganizationContext OrganizationContext { get; }
-}
-
-public class DocumentFilter : Filter<Document, DocumentFilterRequest, DocumentAuthorizationModel>
-{
-    public DocumentFilter(IAuthorizationModelFactory<DocumentAuthorizationModel> modelFactory) 
-        : base(modelFactory)
-    {
-    }
-    
-    protected override IQueryable<Document> Apply(IQueryable<Document> query, DocumentFilterRequest request, DocumentAuthorizationModel model)
-    {
-        if (model.IsSuperuser(request.UserId))
-            return query;
-
-        if (model.HasAnyDocumentAccess(request.UserId))
-            return query;
-        
-        if (request.OrganizationContext != null)
-        {
-            query = query
-                .Where(d => (d.BranchId == request.OrganizationContext.BranchId) &&
-                            (d.OfficeId == request.OrganizationContext.OfficeId || request.OrganizationContext.OfficeId == null));
-        }
-
-        var rules = model.DocumentPolicyRules
-            .Where(r => r.UserId == request.UserId &&
-                        (r.PermissionId == PermissionId.Any || r.PermissionId == request.PermissionId));
-
-        rules = model.ApplyOrganizationContextFilter(rules, request.OrganizationContext);
-        
-        var resultQuery = query
-            .Join(rules,
-                d => d.DocumentTypeId,
-                r => r.DocumentTypeId,
-                (d, r) => new { Document = d, Rule = r })
-            .Select(pair => pair.Document);
-
-        return resultQuery;
+        return serviceCollection.BuildServiceProvider().GetService<AuthorizationEnforcer>();
     }
 }

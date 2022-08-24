@@ -1,4 +1,4 @@
-namespace Authorization.Sample;
+namespace Authorization.Sample.Services;
 
 public interface ICurrentDateService
 {
