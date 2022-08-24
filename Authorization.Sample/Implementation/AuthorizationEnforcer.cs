@@ -21,7 +21,7 @@ public class AuthorizationEnforcer
             currentUserAuthorizationRequest.OrganizationContext ??= _currentUserService.OrganizationContext;
         }
 
-        var matcher = _serviceProvider.GetService<IMatcher<TRequest>>()!;
+        var matcher = _serviceProvider.GetRequiredService<IMatcher<TRequest>>();
         
         var effects = matcher.Match(request);
         
@@ -36,7 +36,7 @@ public class AuthorizationEnforcer
             currentUserAuthorizationRequest.OrganizationContext ??= _currentUserService.OrganizationContext;
         }
 
-        var filter = _serviceProvider.GetService<IFilter<T, TRequest>>()!;
+        var filter = _serviceProvider.GetRequiredService<IFilter<T, TRequest>>();
 
         return filter.Apply(query, request);
     }

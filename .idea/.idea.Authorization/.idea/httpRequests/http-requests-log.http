@@ -1,7 +1,15 @@
-GET http://localhost:5136/document?userId=BranchUser&branchId=1&officeId=3
+GET http://localhost:5136/document?userId=Superuser
 Accept: application/json
 
-<> 2022-08-24T090330.200.json
+###
+
+GET http://localhost:5136/document?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/document?userId=BranchUser&branchId=1&officeId=3
+Accept: application/json
 
 ###
 
@@ -28,21 +36,15 @@ Accept: application/json
 GET http://localhost:5136/document?userId=BranchUser&branchId=1
 Accept: application/json
 
-<> 2022-08-24T090103.200.json
-
 ###
 
 GET http://localhost:5136/document?userId=BankUser
 Accept: application/json
 
-<> 2022-08-24T085544.200.json
-
 ###
 
 GET http://localhost:5136/document?userId=Superuser
 Accept: application/json
-
-<> 2022-08-24T085503.200.json
 
 ###
 

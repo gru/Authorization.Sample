@@ -7,9 +7,9 @@ using LinqToDB.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionOptionsBuilder = new LinqToDBConnectionOptionsBuilder();
-connectionOptionsBuilder.UseSQLite("Data Source=:memory:");
-var connectionOptions = connectionOptionsBuilder.Build();
+var connectionOptions = new LinqToDBConnectionOptionsBuilder()
+    .UseSQLite("Data Source=:memory:")
+    .Build();
 builder.Services.AddSingleton(new DataContext(connectionOptions));
 builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<ICurrentDateService>(new CurrentDateService());
@@ -31,6 +31,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.Services
+    .GetRequiredService<DataContext>()
+    .CreateTestData();
 
 if (app.Environment.IsDevelopment())
 {
