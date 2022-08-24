@@ -29,6 +29,12 @@ public class DataContext : DataConnection
     
     public ITable<DocumentTypeRolePermission> DocumentTypeRolePermissions => this.GetTable<DocumentTypeRolePermission>();
 
+    public ITable<Account> Accounts => this.GetTable<Account>();
+
+    public ITable<GL2Group> Gl2Groups => this.GetTable<GL2Group>();
+
+    public ITable<GL2GroupRolePermission> Gl2GroupRolePermissions => this.GetTable<GL2GroupRolePermission>();
+
     public void CreateTestData()
     {
         this.CreateTable<BankUser>();
@@ -40,6 +46,17 @@ public class DataContext : DataConnection
         this.CreateTable<BankUserRole>();
         this.CreateTable<RolePermission>();
         this.CreateTable<DocumentTypeRolePermission>();
+        this.CreateTable<Account>();
+        this.CreateTable<GL2Group>();
+        this.CreateTable<GL2GroupRolePermission>();
+
+        Accounts.Insert(() => new Account { Number = "30101810400000000225", GL2 = "30101" });
+        Accounts.Insert(() => new Account { Number = "30101810145250000974", GL2 = "30101" });
+        Accounts.Insert(() => new Account { Number = "30101810200000000593", GL2 = "30101" });
+
+        Gl2Groups.Insert(() => new GL2Group { GL2GroupId = 1, GL2 = "30101" });
+
+        Gl2GroupRolePermissions.Insert(() => new GL2GroupRolePermission { GL2GroupId = 1, RoleId = RoleId.BankUser, PermissionId = PermissionId.View });
         
         BankUsers.Insert(() => new BankUser { Id = BankUserId.Superuser });
         BankUsers.Insert(() => new BankUser { Id = BankUserId.BankUser });
