@@ -17,7 +17,4 @@ public class DocumentTypeRolePermission
 
     [Column(Name = "document_type_id", DataType = DataType.Long, CanBeNull = false)]
     public DocumentTypeId DocumentTypeId { get; set; }
-    
-    [Column(Name = "is_readonly", DataType = DataType.Boolean, CanBeNull = false)]
-    public bool IsReadonly { get; set; }
 }

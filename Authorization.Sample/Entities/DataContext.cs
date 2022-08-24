@@ -82,7 +82,7 @@ public class DataContext : DataConnection
         DocumentTypes.Insert(() => new DocumentType { Id = DocumentTypeId.Account, Name = nameof(DocumentTypeId.Account) });
         DocumentTypes.Insert(() => new DocumentType { Id = DocumentTypeId.Guarantee, Name = nameof(DocumentTypeId.Guarantee) });
         
-        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.View, IsReadonly = true });
-        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.Change, IsReadonly = false  });
+        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.View });
+        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.Change  });
     }
 }

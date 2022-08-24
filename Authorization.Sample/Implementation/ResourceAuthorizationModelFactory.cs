@@ -6,20 +6,18 @@ namespace Authorization.Sample.Implementation;
 public class ResourceAuthorizationModelFactory : IAuthorizationModelFactory<ResourceAuthorizationModel>
 {
     private readonly DataContext _context;
-    private readonly IDemoService _demoService;
     private readonly ICurrentDateService _dateService;
 
     public ResourceAuthorizationModelFactory(
-        DataContext context, IDemoService demoService, ICurrentDateService dateService)
+        DataContext context, ICurrentDateService dateService)
     {
         _context = context;
-        _demoService = demoService;
         _dateService = dateService;
     }
 
     public ResourceAuthorizationModel PrepareModel()
     {
-        var model = new ResourceAuthorizationModel(GetResourcePolicyRules(), GetRolePolicyRules());
+        var model = new ResourceAuthorizationModel(GetResourcePolicyRules(), GetRolePolicyRules(), GetPermissionQuery());
         return model;
     }
 
@@ -28,7 +26,7 @@ public class ResourceAuthorizationModelFactory : IAuthorizationModelFactory<Reso
         return from bankUserRole in _context.BankUserRoles
             join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
             join permission in _context.Permissions on rolePermission.PermissionId equals  permission.Id
-            where (bankUserRole.EndDate == null || bankUserRole.EndDate > _dateService.UtcNow) && (!_demoService.IsDemoModeActive || permission.IsReadonly)
+            where bankUserRole.EndDate == null || bankUserRole.EndDate > _dateService.UtcNow
             select new ResourcePolicyRule
             {
                 UserId = (long) bankUserRole.BankUserId, 
@@ -50,5 +48,10 @@ public class ResourceAuthorizationModelFactory : IAuthorizationModelFactory<Reso
                 UserId = (long) bankUserRole.BankUserId, 
                 RoleName = role.Name, 
             };
+    }
+
+    protected IQueryable<Permission> GetPermissionQuery()
+    {
+        return _context.Permissions;
     }
 }

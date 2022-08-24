@@ -181,12 +181,45 @@ public class DocumentEnforcerTests
         Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.Change, organizationContext)));
     }
     
-    private static AuthorizationEnforcer CreateEnforcer(BankUserId currentUser)
+    [Fact]
+    public void Enforce_Supervisor_Permissions_Demo()
+    {
+        var enforcer = CreateEnforcer(BankUserId.Supervisor, true);
+        
+        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.Change)));
+        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.Change)));
+    }
+    
+    [Fact]
+    public void Enforce_Superuser_Permissions_Demo()
+    {
+        var enforcer = CreateEnforcer(BankUserId.Superuser, true);
+        
+        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.Change)));
+        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.Change)));
+    }
+    
+    [Fact]
+    public void Enforce_BankUser_Permissions_Demo()
+    {
+        var enforcer = CreateEnforcer(BankUserId.BankUser, true);
+        
+        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.Change)));
+        Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.Change)));
+    }
+    
+    private static AuthorizationEnforcer CreateEnforcer(BankUserId currentUser, bool demo = false)
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddInMemoryDataContext();
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
-        serviceCollection.AddSingleton<IDemoService>(new DemoService(false));
+        serviceCollection.AddSingleton<IDemoService>(new DemoService(demo));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
         serviceCollection.AddSingleton<IAuthorizationModelFactory<DocumentAuthorizationModel>, DocumentAuthorizationModelFactory>();

@@ -6,14 +6,12 @@ namespace Authorization.Sample.Implementation;
 public class DocumentAuthorizationModelFactory : ResourceAuthorizationModelFactory, IAuthorizationModelFactory<DocumentAuthorizationModel>
 {
     private readonly DataContext _context;
-    private readonly IDemoService _demoService;
     private readonly ICurrentDateService _dateService;
 
     public DocumentAuthorizationModelFactory(DataContext context, IDemoService demoService, ICurrentDateService dateService) 
-        : base(context, demoService, dateService)
+        : base(context, dateService)
     {
         _context = context;
-        _demoService = demoService;
         _dateService = dateService;
     }
     
@@ -22,7 +20,8 @@ public class DocumentAuthorizationModelFactory : ResourceAuthorizationModelFacto
         var model = new DocumentAuthorizationModel(
             GetResourcePolicyRules(), 
             GetRolePolicyRules(), 
-            GetDocumentPolicyRules());
+            GetDocumentPolicyRules(),
+            GetPermissionQuery());
         
         return model;
     }
@@ -32,7 +31,7 @@ public class DocumentAuthorizationModelFactory : ResourceAuthorizationModelFacto
         return from bankUserRole in _context.BankUserRoles
             join documentTypeRolePermission in _context.DocumentTypeRolePermissions on bankUserRole.RoleId equals documentTypeRolePermission.RoleId
             join permission in _context.Permissions on documentTypeRolePermission.PermissionId equals permission.Id
-            where (bankUserRole.EndDate == null || bankUserRole.EndDate > _dateService.UtcNow) && (!_demoService.IsDemoModeActive || permission.IsReadonly) 
+            where bankUserRole.EndDate == null || bankUserRole.EndDate > _dateService.UtcNow
             select new DocumentPolicyRule
             { 
                 UserId = (long) bankUserRole.BankUserId,

@@ -123,13 +123,35 @@ public class ResourceEnforcerTests
         Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Delete, organizationContext)));
     }
     
-    private static AuthorizationEnforcer CreateEnforcer(BankUserId currentUser)
+    [Fact]
+    public void Enforce_Supervisor_Permissions_Demo()
+    {
+        var enforcer = CreateEnforcer(BankUserId.Supervisor, true);
+    
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Change)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Delete)));
+    }
+    
+    [Fact]
+    public void Enforce_Superuser_Permissions_Demo()
+    {
+        var enforcer = CreateEnforcer(BankUserId.Superuser, true);
+    
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Change)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Delete)));
+    }
+    
+    private static AuthorizationEnforcer CreateEnforcer(BankUserId currentUser, bool demo = false)
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddInMemoryDataContext();
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
-        serviceCollection.AddSingleton<IDemoService>(new DemoService(false));
+        serviceCollection.AddSingleton<IDemoService>(new DemoService(demo));
         serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
         serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
         serviceCollection.AddSingleton<AuthorizationEnforcer>();

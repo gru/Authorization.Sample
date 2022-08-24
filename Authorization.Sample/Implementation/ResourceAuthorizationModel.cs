@@ -6,12 +6,16 @@ public class ResourceAuthorizationModel
 {
     public ResourceAuthorizationModel(
         IQueryable<ResourcePolicyRule> resourcePolicyRules, 
-        IQueryable<RolePolicyRule> rolePolicyRules)
+        IQueryable<RolePolicyRule> rolePolicyRules,
+        IQueryable<Permission> permissions)
     {
         ResourcePolicyRules = resourcePolicyRules;
         RolePolicyRules = rolePolicyRules;
+        Permissions = permissions;
     }
 
+    public IQueryable<Permission> Permissions { get; }
+    
     public IQueryable<ResourcePolicyRule> ResourcePolicyRules { get; }
 
     public IQueryable<RolePolicyRule> RolePolicyRules { get; }
@@ -21,6 +25,18 @@ public class ResourceAuthorizationModel
         return RolePolicyRules.Any(r => r.UserId == userId && r.RoleName == "Superuser");
     }
 
+    public bool IsReadOnlyPermission(PermissionId permissionId)
+    {
+        /*
+         * NOTE:
+         * Так как существуют разрешения Any, которые являются одновременно и ReadOnly и нет,
+         * то нельзя просто отфитровать все не ReadOnly разрешения на этапе построения модели.
+         * Поэтому проверяем запрашиваемое разрешение, на признак IsReadOnly
+         */
+        
+        return Permissions.Any(p => p.Id == permissionId && p.IsReadonly);
+    }
+    
     public bool HasPermission(long userId, SecurableId securableId, PermissionId permissionId, OrganizationContext ctx)
     {
         var query = ResourcePolicyRules
