@@ -2,11 +2,15 @@ using Authorization.Sample;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
 using Authorization.Sample.Services;
+using LinqToDB.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddSingleton(new DataContext());
+var connectionOptionsBuilder = new LinqToDBConnectionOptionsBuilder();
+connectionOptionsBuilder.UseSQLite("Data Source=:memory:");
+var connectionOptions = connectionOptionsBuilder.Build();
+builder.Services.AddSingleton(new DataContext(connectionOptions));
 builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<ICurrentDateService>(new CurrentDateService());
 builder.Services.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();

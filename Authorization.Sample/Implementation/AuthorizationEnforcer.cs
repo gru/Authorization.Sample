@@ -18,7 +18,7 @@ public class AuthorizationEnforcer
         if (request is ICurrentUserAuthorizationRequest currentUserAuthorizationRequest)
         {
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
-            currentUserAuthorizationRequest.OrganizationContext = _currentUserService.OrganizationContext;
+            currentUserAuthorizationRequest.OrganizationContext ??= _currentUserService.OrganizationContext;
         }
 
         var matcher = _serviceProvider.GetService<IMatcher<TRequest>>()!;
@@ -33,7 +33,7 @@ public class AuthorizationEnforcer
         if (request is ICurrentUserAuthorizationRequest currentUserAuthorizationRequest)
         {
             currentUserAuthorizationRequest.UserId = _currentUserService.UserId;
-            currentUserAuthorizationRequest.OrganizationContext = _currentUserService.OrganizationContext;
+            currentUserAuthorizationRequest.OrganizationContext ??= _currentUserService.OrganizationContext;
         }
 
         var filter = _serviceProvider.GetService<IFilter<T, TRequest>>()!;

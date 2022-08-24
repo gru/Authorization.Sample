@@ -126,7 +126,7 @@ public class ResourceEnforcerTests
     private static AuthorizationEnforcer CreateEnforcer(BankUserId currentUser)
     {
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton(new DataContext());
+        serviceCollection.AddInMemoryDataContext();
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();

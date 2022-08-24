@@ -13,8 +13,7 @@ public class DocumentFilterTests
     [Fact]
     public void EnforceFilter_BankUser_Permissions()
     {
-        var enforcer = CreateEnforcer(BankUserId.BankUser);
-        var context = new DataContext();
+        var (enforcer, context) = CreateEnforcer(BankUserId.BankUser);
 
         var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
         
@@ -25,8 +24,7 @@ public class DocumentFilterTests
     [Fact]
     public void EnforceFilter_BankUser_Change_Permissions()
     {
-        var enforcer = CreateEnforcer(BankUserId.BankUser);
-        var context = new DataContext();
+        var (enforcer, context) = CreateEnforcer(BankUserId.BankUser);
 
         var accountForChange = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest(permissionId: PermissionId.Change)).ToArray();
         
@@ -40,9 +38,8 @@ public class DocumentFilterTests
     [Fact]
     public void EnforceFilter_RegionalOfficeUser_With_OrgContext()
     {
-        var enforcer = CreateEnforcer(BankUserId.RegionalOfficeUser);
-        var context = new DataContext();
-
+        var (enforcer, context) = CreateEnforcer(BankUserId.RegionalOfficeUser);
+        
         var rootDocuments = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
         
         Assert.Empty(rootDocuments);
@@ -68,9 +65,8 @@ public class DocumentFilterTests
     [Fact]
     public void EnforceFilter_OfficeUser_With_OrgContext()
     {
-        var enforcer = CreateEnforcer(BankUserId.OfficeUser);
-        var context = new DataContext();
-
+        var (enforcer, context) = CreateEnforcer(BankUserId.OfficeUser);
+        
         var rootDocuments = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
         
         Assert.Empty(rootDocuments);
@@ -95,9 +91,8 @@ public class DocumentFilterTests
     [Fact]
     public void Enforce_Superuser_Permissions()
     {
-        var enforcer = CreateEnforcer(BankUserId.Superuser);
-        var context = new DataContext();
-
+        var (enforcer, context) = CreateEnforcer(BankUserId.Superuser);
+      
         var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
         Assert.Equal(5, documents.Length);
     }
@@ -106,9 +101,8 @@ public class DocumentFilterTests
     [ClassData(typeof(OrgStructureClassData))]
     public void Enforce_Superuser_Permissions_With_OrgContext(OrganizationContext organizationContext)
     {
-        var enforcer = CreateEnforcer(BankUserId.Superuser);
-        var context = new DataContext();
-
+        var (enforcer, context) = CreateEnforcer(BankUserId.Superuser);
+     
         var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest(organizationContext)).ToArray();
         Assert.Equal(5, documents.Length);
     }
@@ -116,8 +110,7 @@ public class DocumentFilterTests
     [Fact]
     public void Enforce_Supervisor_Permissions()
     {
-        var enforcer = CreateEnforcer(BankUserId.Supervisor);
-        var context = new DataContext();
+        var (enforcer, context) = CreateEnforcer(BankUserId.Supervisor);
 
         var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
         Assert.Equal(5, documents.Length);
@@ -127,17 +120,17 @@ public class DocumentFilterTests
     [ClassData(typeof(OrgStructureClassData))]
     public void Enforce_Supervisor_Permissions_With_OrgContext(OrganizationContext organizationContext)
     {
-        var enforcer = CreateEnforcer(BankUserId.Supervisor);
-        var context = new DataContext();
+        var (enforcer, context) = CreateEnforcer(BankUserId.Supervisor);
 
         var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest(organizationContext)).ToArray();
         Assert.Equal(5, documents.Length);
     }
     
-    private static AuthorizationEnforcer CreateEnforcer(BankUserId currentUser)
+    private static (AuthorizationEnforcer, DataContext) CreateEnforcer(BankUserId currentUser)
     {
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton(new DataContext());
+        var dataContext = ServiceCollectionEx.GetInMemoryDataContext();
+        serviceCollection.AddInMemoryDataContext(dataContext);
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
@@ -147,6 +140,8 @@ public class DocumentFilterTests
         serviceCollection.AddSingleton<IFilter<Document, DocumentFilterRequest>, DocumentFilter>();
         serviceCollection.AddSingleton<AuthorizationEnforcer>();
 
-        return serviceCollection.BuildServiceProvider().GetService<AuthorizationEnforcer>();
+        var enforcer = serviceCollection.BuildServiceProvider().GetService<AuthorizationEnforcer>(); 
+        
+        return (enforcer, dataContext);
     }
 }
