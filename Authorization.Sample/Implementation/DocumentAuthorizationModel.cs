@@ -8,9 +8,8 @@ public class DocumentAuthorizationModel : ResourceAuthorizationModel
 
     public DocumentAuthorizationModel(
         IQueryable<ResourcePolicyRule> resourcePolicyRules, 
-        IQueryable<RolePolicyRule> rolePolicyRules, 
         IQueryable<DocumentPolicyRule> documentPolicyRules) 
-        : base(resourcePolicyRules, rolePolicyRules)
+        : base(resourcePolicyRules)
     {
         DocumentPolicyRules = documentPolicyRules;
     }
