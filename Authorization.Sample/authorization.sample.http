@@ -1,3 +1,24 @@
+POST http://localhost:5136/document?userId=Superuser
+Content-Type: application/json
+
+{
+  "Id": 5,
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+###
+PUT http://localhost:5136/document?userId=Superuser
+Content-Type: application/json
+
+{
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+###
 # запросить все документы как суперпользотваль
 GET http://localhost:5136/document?userId=Superuser
 Accept: application/json

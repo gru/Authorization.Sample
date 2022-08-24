@@ -1,7 +1,9 @@
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
 using Authorization.Sample.Services;
+using LinqToDB;
 using Microsoft.AspNetCore.Mvc;
+using DataContext = Authorization.Sample.Entities.DataContext;
 
 namespace Authorization.Sample.Controllers;
 
@@ -40,11 +42,19 @@ public class DocumentController : ControllerBase
     
     [HttpPut]
     [ResourcePermission(SecurableId.Document, PermissionId.Create)]
-    public void Put(Document document)
+    public long Put(Document document)
     {
         if (_enforcer.Enforce(new DocumentAuthorizationRequest(document.DocumentTypeId, PermissionId.Create)))
         {
+            return _context.Documents.InsertWithInt64Identity(() => new Document
+            {
+                DocumentTypeId = document.DocumentTypeId,
+                BranchId = document.BranchId,
+                OfficeId = document.OfficeId
+            });
         }
+
+        return -1;
     }
     
     [HttpPost]
@@ -53,6 +63,12 @@ public class DocumentController : ControllerBase
     {
         if (_enforcer.Enforce(new DocumentAuthorizationRequest(document.DocumentTypeId, PermissionId.Change)))
         {
+            _context.Documents
+                .Where(d => d.Id == document.Id)
+                .Set(d => d.DocumentTypeId, document.DocumentTypeId)
+                .Set(d => d.BranchId, document.BranchId)
+                .Set(d => d.OfficeId, document.OfficeId)
+                .Update();
         }
     }
     
@@ -65,6 +81,9 @@ public class DocumentController : ControllerBase
 
         if (_enforcer.Enforce(new DocumentAuthorizationRequest(document, PermissionId.Delete)))
         {
+            _context.Documents
+                .Where(d => d.Id == document.Id)
+                .Delete();
         }
     }
 }

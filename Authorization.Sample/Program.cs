@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Authorization.Sample;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
@@ -21,7 +22,10 @@ builder.Services.AddSingleton<IFilter<Document, DocumentFilterRequest>, Document
 builder.Services.AddSingleton<AuthorizationEnforcer>();
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(opts =>
+{
+    opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 builder.Services.AddAuthentication(opts =>
 {
     opts.DefaultScheme = AuthSchemas.RequestQueryScheme;
