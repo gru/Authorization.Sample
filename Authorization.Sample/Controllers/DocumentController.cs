@@ -19,7 +19,7 @@ public class DocumentController : ControllerBase
     }
 
     [HttpGet]
-    [ResourcePermission(PermissionId.ViewDocument)]
+    [ResourcePermission(SecurableId.Document, PermissionId.View)]
     public IEnumerable<Document> Get()
     {
         var query = _enforcer
@@ -29,7 +29,7 @@ public class DocumentController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [ResourcePermission(PermissionId.ViewDocument)]
+    [ResourcePermission(SecurableId.Document, PermissionId.View)]
     public Document Get(long id)
     {
         var query = _enforcer
@@ -39,31 +39,31 @@ public class DocumentController : ControllerBase
     }
     
     [HttpPut]
-    [ResourcePermission(PermissionId.CreateDocument)]
+    [ResourcePermission(SecurableId.Document, PermissionId.Create)]
     public void Put(Document document)
     {
-        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document.DocumentTypeId, PermissionId.CreateDocument)))
+        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document.DocumentTypeId, PermissionId.Create)))
         {
         }
     }
     
     [HttpPost]
-    [ResourcePermission(PermissionId.ChangeDocument)]
+    [ResourcePermission(SecurableId.Document, PermissionId.Change)]
     public void Post(Document document)
     {
-        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document.DocumentTypeId, PermissionId.ChangeDocument)))
+        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document.DocumentTypeId, PermissionId.Change)))
         {
         }
     }
     
     [HttpDelete]
-    [ResourcePermission(PermissionId.DeleteDocument)]
+    [ResourcePermission(SecurableId.Document, PermissionId.Delete)]
     public void Delete(long id)
     {
         var document = _context.Documents.SingleOrDefault(d => d.Id == id);
         if (document == null) return;
 
-        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document, PermissionId.DeleteDocument)))
+        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document, PermissionId.Delete)))
         {
         }
     }
