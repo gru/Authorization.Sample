@@ -186,6 +186,7 @@ public class DocumentEnforcerTests
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddInMemoryDataContext();
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
+        serviceCollection.AddSingleton<IDemoService>(new DemoService(false));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
         serviceCollection.AddSingleton<IAuthorizationModelFactory<DocumentAuthorizationModel>, DocumentAuthorizationModelFactory>();

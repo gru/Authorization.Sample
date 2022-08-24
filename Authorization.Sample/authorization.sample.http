@@ -1,4 +1,4 @@
-POST http://localhost:5136/document?userId=Superuser
+POST http://localhost:5136/document?userId=Supervisor
 Content-Type: application/json
 
 {
@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ###
-PUT http://localhost:5136/document?userId=Superuser
+PUT http://localhost:5136/document?userId=Supervisor
 Content-Type: application/json
 
 {

@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Authorization.Sample;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
 using Authorization.Sample.Services;
@@ -12,6 +11,7 @@ var connectionOptions = new LinqToDBConnectionOptionsBuilder()
     .UseSQLite("Data Source=:memory:")
     .Build();
 builder.Services.AddSingleton(new DataContext(connectionOptions));
+builder.Services.AddSingleton<IDemoService>(new DemoService(true));
 builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<ICurrentDateService>(new CurrentDateService());
 builder.Services.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();

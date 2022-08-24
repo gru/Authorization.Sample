@@ -60,11 +60,11 @@ public class DataContext : DataConnection
         Roles.Insert(() => new Role { Id = RoleId.BankUser, Name = nameof(RoleId.BankUser) });
         Roles.Insert(() => new Role { Id = RoleId.Supervisor, Name = nameof(RoleId.Supervisor) });
 
-        Permissions.Insert(() => new Permission { Id = PermissionId.View, Name = nameof(PermissionId.View) });
-        Permissions.Insert(() => new Permission { Id = PermissionId.Create, Name = nameof(PermissionId.Create) });
-        Permissions.Insert(() => new Permission { Id = PermissionId.Change, Name = nameof(PermissionId.Change) });
-        Permissions.Insert(() => new Permission { Id = PermissionId.Delete, Name = nameof(PermissionId.Delete) });
-        Permissions.Insert(() => new Permission { Id = PermissionId.Any, Name = nameof(PermissionId.Any) });
+        Permissions.Insert(() => new Permission { Id = PermissionId.View, Name = nameof(PermissionId.View), IsReadonly = true });
+        Permissions.Insert(() => new Permission { Id = PermissionId.Create, Name = nameof(PermissionId.Create), IsReadonly = false });
+        Permissions.Insert(() => new Permission { Id = PermissionId.Change, Name = nameof(PermissionId.Change), IsReadonly = false });
+        Permissions.Insert(() => new Permission { Id = PermissionId.Delete, Name = nameof(PermissionId.Delete), IsReadonly = false });
+        Permissions.Insert(() => new Permission { Id = PermissionId.Any, Name = nameof(PermissionId.Any), IsReadonly = false });
 
         Securables.Insert(() => new Securable { Id = SecurableId.Document, Name = nameof(SecurableId.Document) });
         Securables.Insert(() => new Securable { Id = SecurableId.DocumentationFile, Name = nameof(SecurableId.DocumentationFile) });
@@ -82,7 +82,7 @@ public class DataContext : DataConnection
         DocumentTypes.Insert(() => new DocumentType { Id = DocumentTypeId.Account, Name = nameof(DocumentTypeId.Account) });
         DocumentTypes.Insert(() => new DocumentType { Id = DocumentTypeId.Guarantee, Name = nameof(DocumentTypeId.Guarantee) });
         
-        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.View });
-        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.Change });
+        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.View, IsReadonly = true });
+        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.Change, IsReadonly = false  });
     }
 }

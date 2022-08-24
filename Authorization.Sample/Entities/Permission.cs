@@ -11,4 +11,7 @@ public class Permission
 
     [Column(Name = "name", DataType = DataType.VarChar, Length = 255)]
     public string Name { get; set; }
+
+    [Column(Name = "is_readonly", DataType = DataType.Boolean, CanBeNull = false)]
+    public bool IsReadonly { get; set; }
 }

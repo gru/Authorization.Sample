@@ -129,6 +129,7 @@ public class ResourceEnforcerTests
         serviceCollection.AddInMemoryDataContext();
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
+        serviceCollection.AddSingleton<IDemoService>(new DemoService(false));
         serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
         serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
         serviceCollection.AddSingleton<AuthorizationEnforcer>();
