@@ -87,11 +87,11 @@ public class DataContext : DataConnection
 
         Securables.Insert(() => new Securable { Id = SecurableId.Document, Name = nameof(SecurableId.Document) });
         Securables.Insert(() => new Securable { Id = SecurableId.Account, Name = nameof(SecurableId.Account) });
+        Securables.Insert(() => new Securable { Id = SecurableId.DocumentationFile, Name = nameof(SecurableId.Account) });
         Securables.Insert(() => new Securable { Id = SecurableId.Any, Name = nameof(SecurableId.Any) });
 
-        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Document });
-        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Account });
         RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.Supervisor, PermissionId = PermissionId.Any, SecurableId = SecurableId.Any });
+        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.DocumentationFile });
         
         Documents.Insert(() => new Document { Id = 1, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Account });
         Documents.Insert(() => new Document { Id = 2, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Account });

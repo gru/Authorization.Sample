@@ -25,6 +25,11 @@ public class ResourceAuthorizationModel
         return RolePolicyRules.Any(r => r.UserId == userId && r.RoleName == "Superuser");
     }
 
+    public bool IsSupervisor(long userId)
+    {
+        return ResourcePolicyRules.Any(r => r.UserId == userId && r.SecurableId == SecurableId.Any && r.PermissionId == PermissionId.Any);
+    }
+    
     public bool IsReadOnlyPermission(PermissionId permissionId)
     {
         /*

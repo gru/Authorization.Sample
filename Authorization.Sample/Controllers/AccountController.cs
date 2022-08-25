@@ -21,7 +21,6 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [ResourcePermission(SecurableId.Account, PermissionId.View)]
     public Account Get(long id)
     {
         var account = _context.Accounts.SingleOrDefault(a => a.Id == id);
@@ -34,7 +33,6 @@ public class AccountController : ControllerBase
     }
 
     [HttpPut]
-    [ResourcePermission(SecurableId.Account, PermissionId.Create)]
     public long Put([FromQuery] string accountNumber)
     {
         if (TryGetGL2(accountNumber, out var gl2))
@@ -50,7 +48,6 @@ public class AccountController : ControllerBase
     }
     
     [HttpPost("{id}")]
-    [ResourcePermission(SecurableId.Account, PermissionId.Change)]
     public void Post(long id, [FromQuery] string accountNumber)
     {
         if (TryGetGL2(accountNumber, out var gl2))
@@ -67,7 +64,6 @@ public class AccountController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [ResourcePermission(SecurableId.Account, PermissionId.Change)]
     public void Delete(long id)
     {
         var account = _context.Accounts.SingleOrDefault(a => a.Id == id);

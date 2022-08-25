@@ -1,3 +1,4 @@
+using Authorization.Sample.Entities;
 using Authorization.Sample.Services;
 
 namespace Authorization.Sample.Implementation;
@@ -32,9 +33,16 @@ public class AccountMatcher : Matcher<AccountAuthorizationRequest, AccountAuthor
                             groups.Contains(r.GL2GroupId));
 
             query = model.ApplyOrganizationContextFilter(query, request.OrganizationContext);
-            
+
             if (query.Any())
+            {
                 yield return PolicyEffect.Allow;
+            }
+            else
+            {
+                if (model.HasPermission(request.UserId, SecurableId.Account, request.PermissionId, request.OrganizationContext))
+                    yield return PolicyEffect.Allow;
+            }
         }
     }
 }

@@ -15,14 +15,4 @@ public class DocumentAuthorizationModel : ResourceAuthorizationModel
     {
         DocumentPolicyRules = documentPolicyRules;
     }
-
-    public bool HasAnyDocumentAccess(long userId)
-    {
-        // user, any, any - супервизор
-        // user, doc, any - имеет доступ ко всем типам документов
-        return ResourcePolicyRules
-            .Any(r => r.UserId == userId &&
-                      (r.SecurableId == SecurableId.Document || r.SecurableId == SecurableId.Any) &&
-                      (r.PermissionId == PermissionId.Any));
-    }
 }

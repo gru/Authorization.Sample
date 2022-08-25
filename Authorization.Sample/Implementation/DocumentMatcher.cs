@@ -1,3 +1,4 @@
+using Authorization.Sample.Entities;
 using Authorization.Sample.Services;
 
 namespace Authorization.Sample.Implementation;
@@ -18,7 +19,7 @@ public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, DocumentAut
         {
             yield return PolicyEffect.Deny;
         }
-        else if (model.IsSuperuser(request.UserId) || model.HasAnyDocumentAccess(request.UserId))
+        else if (model.IsSuperuser(request.UserId))
         {
             yield return PolicyEffect.Allow;
         }
@@ -35,6 +36,11 @@ public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, DocumentAut
             if (query.Any())
             {
                 yield return PolicyEffect.Allow;
+            }
+            else
+            {
+                if (model.HasPermission(request.UserId, SecurableId.Document, request.PermissionId, request.OrganizationContext))
+                    yield return PolicyEffect.Allow;
             }
         }
     }

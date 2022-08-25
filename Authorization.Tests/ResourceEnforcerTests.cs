@@ -17,8 +17,8 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.BankUser);
 
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change)));
     }
 
     [Fact]
@@ -26,14 +26,14 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.BranchUser);
 
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change)));
 
         var data = new OrgStructureClassData();
         foreach (var organizationContext in data.EnumerateContexts())
         {
-            Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View, organizationContext)));
-            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change, organizationContext)));
+            Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change, organizationContext)));
         }
     }
     
@@ -42,20 +42,20 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.RegionalOfficeUser);
 
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change)));
 
         var data = new OrgStructureClassData();
         foreach (var organizationContext in data.EnumerateContexts().Take(OrgContextCount.BranchTakeCount))
         {
-            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View, organizationContext)));
-            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change, organizationContext)));
+            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change, organizationContext)));
         }
         
         foreach (var organizationContext in data.EnumerateContexts().Skip(OrgContextCount.RegionalOfficeSkipCount))
         {
-            Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View, organizationContext)));
-            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change, organizationContext)));
+            Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change, organizationContext)));
         }
     }
     
@@ -64,20 +64,20 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.OfficeUser);
 
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change)));
 
         var data = new OrgStructureClassData();
         foreach (var organizationContext in data.EnumerateContexts().Take(OrgContextCount.RegionalOfficeTakeCount))
         {
-            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View, organizationContext)));
-            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change, organizationContext)));
+            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change, organizationContext)));
         }
         
         foreach (var organizationContext in data.EnumerateContexts().Skip(OrgContextCount.OfficeSkipCount))
         {
-            Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View, organizationContext)));
-            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change, organizationContext)));
+            Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View, organizationContext)));
+            Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change, organizationContext)));
         }
     }
     
@@ -86,8 +86,8 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.Superuser);
         
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change)));
     }
 
     [Theory]
@@ -96,8 +96,8 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.Superuser);
         
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View, organizationContext)));
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change, organizationContext)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View, organizationContext)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change, organizationContext)));
     }
 
     [Fact]
@@ -105,10 +105,8 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.Supervisor);
         
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Change)));
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Delete)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change)));
     }
     
     [Theory]
@@ -117,10 +115,8 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.Supervisor);
         
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View, organizationContext)));
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change, organizationContext)));
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Change, organizationContext)));
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Delete, organizationContext)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View, organizationContext)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change, organizationContext)));
     }
     
     [Fact]
@@ -128,10 +124,8 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.Supervisor, true);
     
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Change)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Delete)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change)));
     }
     
     [Fact]
@@ -139,10 +133,8 @@ public class ResourceEnforcerTests
     {
         var enforcer = CreateEnforcer(BankUserId.Superuser, true);
     
-        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.View)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.Document, PermissionId.Change)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Change)));
-        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(Securables.DocumentationFile, PermissionId.Delete)));
+        Assert.True(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.View)));
+        Assert.False(enforcer.Enforce(new ResourceAuthorizationRequest(SecurableId.DocumentationFile, PermissionId.Change)));
     }
     
     private static AuthorizationEnforcer CreateEnforcer(BankUserId currentUser, bool demo = false)

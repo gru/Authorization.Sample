@@ -14,7 +14,7 @@ public class DocumentFilter : Filter<Document, DocumentFilterRequest, DocumentAu
         if (model.IsSuperuser(request.UserId))
             return query;
 
-        if (model.HasAnyDocumentAccess(request.UserId))
+        if (model.IsSupervisor(request.UserId))
             return query;
         
         if (request.OrganizationContext != null)
@@ -23,20 +23,29 @@ public class DocumentFilter : Filter<Document, DocumentFilterRequest, DocumentAu
                 .Where(d => (d.BranchId == request.OrganizationContext.BranchId) &&
                             (d.OfficeId == request.OrganizationContext.OfficeId || request.OrganizationContext.OfficeId == null));
         }
-
-        var rules = model.DocumentPolicyRules
-            .Where(r => r.UserId == request.UserId &&
-                        (r.PermissionId == PermissionId.Any || r.PermissionId == request.PermissionId));
-
-        rules = model.ApplyOrganizationContextFilter(rules, request.OrganizationContext);
         
-        var resultQuery = query
-            .Join(rules,
-                d => d.DocumentTypeId,
-                r => r.DocumentTypeId,
-                (d, r) => new { Document = d, Rule = r })
-            .Select(pair => pair.Document);
+        // если есть разрешение на ресурс, то нужно вернуть все документы без фильтрации
+        if (model.HasPermission(request.UserId, SecurableId.Document, request.PermissionId, request.OrganizationContext))
+        {
+            return query;
+        }
+        else
+        {
+            // в противном случае отфильтровать по дсотупным DocumentTypeId
+            var rules = model.DocumentPolicyRules
+                .Where(r => r.UserId == request.UserId &&
+                            (r.PermissionId == PermissionId.Any || r.PermissionId == request.PermissionId));
 
-        return resultQuery;
+            rules = model.ApplyOrganizationContextFilter(rules, request.OrganizationContext);
+        
+            var resultQuery = query
+                .Join(rules,
+                    d => d.DocumentTypeId,
+                    r => r.DocumentTypeId,
+                    (d, r) => new { Document = d, Rule = r })
+                .Select(pair => pair.Document);
+
+            return resultQuery;
+        }
     }
 }
