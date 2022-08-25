@@ -1,3 +1,47 @@
+GET http://localhost:5136/account/4?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/account/4?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/account/4?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/account/1?userId=BankUser
+Accept: application/json
+
+<> 2022-08-25T122327.200.json
+
+###
+
+GET http://localhost:5136/account/1?userId=BankUser
+Accept: application/json
+
+<> 2022-08-25T122209.500.txt
+
+###
+
+GET http://localhost:5136/account/1?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/account/1?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/account/1?userId=BankUser
+Accept: application/json
+
+###
+
 GET http://localhost:5136/document?userId=Superuser
 Accept: application/json
 

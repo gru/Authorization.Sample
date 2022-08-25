@@ -4,6 +4,13 @@ namespace Authorization.Sample.Implementation;
 
 public class AccountAuthorizationRequest : ICurrentUserAuthorizationRequest
 {
+    public AccountAuthorizationRequest(Account account, PermissionId permissionId, OrganizationContext organizationContext = null)
+    {
+        GL2 = account.GL2;
+        PermissionId = permissionId;
+        OrganizationContext = organizationContext;
+    }
+    
     public AccountAuthorizationRequest(string gl2, PermissionId permissionId, OrganizationContext organizationContext = null)
     {
         OrganizationContext = organizationContext;

@@ -50,13 +50,15 @@ public class DataContext : DataConnection
         this.CreateTable<GL2Group>();
         this.CreateTable<GL2GroupRolePermission>();
 
-        Accounts.Insert(() => new Account { Number = "30101810400000000225", GL2 = "30101" });
-        Accounts.Insert(() => new Account { Number = "30101810145250000974", GL2 = "30101" });
-        Accounts.Insert(() => new Account { Number = "30101810200000000593", GL2 = "30101" });
+        Accounts.Insert(() => new Account { Id = 1, Number = "30101810400000000225", GL2 = "30101" });
+        Accounts.Insert(() => new Account { Id = 2, Number = "30101810145250000974", GL2 = "30101" });
+        Accounts.Insert(() => new Account { Id = 3, Number = "30101810200000000593", GL2 = "30101" });
+        Accounts.Insert(() => new Account { Id = 4, Number = "30102810200000000790", GL2 = "30102" });
 
-        Gl2Groups.Insert(() => new GL2Group { GL2GroupId = Gl2GroupIds.Bank, GL2 = "30101" });
+        Gl2Groups.Insert(() => new GL2Group { GL2GroupId = GL2GroupIds.Bank, GL2 = "30101" });
+        Gl2Groups.Insert(() => new GL2Group { GL2GroupId = GL2GroupIds.Credit, GL2 = "30102" });
 
-        Gl2GroupRolePermissions.Insert(() => new GL2GroupRolePermission { GL2GroupId = 1, RoleId = RoleId.BankUser, PermissionId = PermissionId.View });
+        Gl2GroupRolePermissions.Insert(() => new GL2GroupRolePermission { GL2GroupId = GL2GroupIds.Bank, RoleId = RoleId.BankUser, PermissionId = PermissionId.View });
         
         BankUsers.Insert(() => new BankUser { Id = BankUserId.Superuser });
         BankUsers.Insert(() => new BankUser { Id = BankUserId.BankUser });
@@ -88,6 +90,7 @@ public class DataContext : DataConnection
         Securables.Insert(() => new Securable { Id = SecurableId.Any, Name = nameof(SecurableId.Any) });
 
         RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Document });
+        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Account });
         RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.Supervisor, PermissionId = PermissionId.Any, SecurableId = SecurableId.Any });
         
         Documents.Insert(() => new Document { Id = 1, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Account });

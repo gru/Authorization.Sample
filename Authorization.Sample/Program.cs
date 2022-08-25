@@ -16,8 +16,10 @@ builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<ICurrentDateService>(new CurrentDateService());
 builder.Services.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
 builder.Services.AddSingleton<IAuthorizationModelFactory<DocumentAuthorizationModel>, DocumentAuthorizationModelFactory>();
+builder.Services.AddSingleton<IAuthorizationModelFactory<AccountAuthorizationModel>, AccountAuthorizationModelFactory>();
 builder.Services.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
 builder.Services.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
+builder.Services.AddSingleton<IMatcher<AccountAuthorizationRequest>, AccountMatcher>();
 builder.Services.AddSingleton<IFilter<Document, DocumentFilterRequest>, DocumentFilter>();
 builder.Services.AddSingleton<AuthorizationEnforcer>();
 
