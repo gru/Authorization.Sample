@@ -169,9 +169,9 @@ public class OrgStructureClassData : IEnumerable<object[]>
 
     public IEnumerator<object[]> GetEnumerator()
     { 
-        yield return new object[] { new OrganizationContext(OrgStructure.BranchId) };
-        yield return new object[] { new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId) };
-        yield return new object[] { new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId, OrgStructure.OfficeId) };
+        yield return new object[] { new OrganizationContext(OrgIds.BranchId) };
+        yield return new object[] { new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId) };
+        yield return new object[] { new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId, OrgIds.OfficeId) };
     }
 
     IEnumerator IEnumerable.GetEnumerator()

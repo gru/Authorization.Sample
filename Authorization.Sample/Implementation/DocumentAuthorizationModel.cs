@@ -22,7 +22,7 @@ public class DocumentAuthorizationModel : ResourceAuthorizationModel
         // user, doc, any - имеет доступ ко всем типам документов
         return ResourcePolicyRules
             .Any(r => r.UserId == userId &&
-                      (r.Resource == SecurableId.Document || r.Resource == SecurableId.Any) &&
-                      (r.Action == PermissionId.Any));
+                      (r.SecurableId == SecurableId.Document || r.SecurableId == SecurableId.Any) &&
+                      (r.PermissionId == PermissionId.Any));
     }
 }

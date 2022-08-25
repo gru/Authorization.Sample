@@ -18,14 +18,12 @@ public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, DocumentAut
         {
             yield return PolicyEffect.Deny;
         }
+        else if (model.IsSuperuser(request.UserId) || model.HasAnyDocumentAccess(request.UserId))
+        {
+            yield return PolicyEffect.Allow;
+        }
         else
         {
-            if (model.IsSuperuser(request.UserId))
-                yield return PolicyEffect.Allow;
-        
-            if (model.HasAnyDocumentAccess(request.UserId))
-                yield return PolicyEffect.Allow;
-
             var query = model.DocumentPolicyRules
                 .Where(r => r.UserId == request.UserId &&
                             r.DocumentTypeId == request.DocumentTypeId &&

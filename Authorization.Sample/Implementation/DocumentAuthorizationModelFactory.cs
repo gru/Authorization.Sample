@@ -8,7 +8,7 @@ public class DocumentAuthorizationModelFactory : ResourceAuthorizationModelFacto
     private readonly DataContext _context;
     private readonly ICurrentDateService _dateService;
 
-    public DocumentAuthorizationModelFactory(DataContext context, IDemoService demoService, ICurrentDateService dateService) 
+    public DocumentAuthorizationModelFactory(DataContext context, ICurrentDateService dateService) 
         : base(context, dateService)
     {
         _context = context;
@@ -21,7 +21,7 @@ public class DocumentAuthorizationModelFactory : ResourceAuthorizationModelFacto
             GetResourcePolicyRules(), 
             GetRolePolicyRules(), 
             GetDocumentPolicyRules(),
-            GetPermissionQuery());
+            GetPermissions());
         
         return model;
     }

@@ -41,8 +41,8 @@ public class ResourceAuthorizationModel
     {
         var query = ResourcePolicyRules
             .Where(r => r.UserId == userId && 
-                        (r.Resource == securableId || r.Resource == SecurableId.Any) &&
-                        (r.Action == permissionId || r.Action == PermissionId.Any));
+                        (r.SecurableId == securableId || r.SecurableId == SecurableId.Any) &&
+                        (r.PermissionId == permissionId || r.PermissionId == PermissionId.Any));
 
         query = ApplyOrganizationContextFilter(query, ctx);
 

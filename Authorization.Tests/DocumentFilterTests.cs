@@ -45,21 +45,21 @@ public class DocumentFilterTests
         Assert.Empty(rootDocuments);
 
         var branchDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgStructure.BranchId))).ToArray();
+            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId))).ToArray();
 
         Assert.Empty(branchDocuments);
         
         var regionalOfficeDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId))).ToArray();
+            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId))).ToArray();
         
         Assert.Equal(3, regionalOfficeDocuments.Length);
-        Assert.All(regionalOfficeDocuments, d => Assert.Equal(OrgStructure.BranchId, d.BranchId));
+        Assert.All(regionalOfficeDocuments, d => Assert.Equal(OrgIds.BranchId, d.BranchId));
         
         var officeDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId, OrgStructure.OfficeId))).ToArray();
+            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId, OrgIds.OfficeId))).ToArray();
 
         Assert.Equal(2, officeDocuments.Length);
-        Assert.All(officeDocuments, d => Assert.Equal(OrgStructure.OfficeId, d.OfficeId));
+        Assert.All(officeDocuments, d => Assert.Equal(OrgIds.OfficeId, d.OfficeId));
     }
     
     [Fact]
@@ -72,20 +72,20 @@ public class DocumentFilterTests
         Assert.Empty(rootDocuments);
 
         var branchDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgStructure.BranchId))).ToArray();
+            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId))).ToArray();
 
         Assert.Empty(branchDocuments);
         
         var regionalOfficeDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId))).ToArray();
+            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId))).ToArray();
         
         Assert.Empty(regionalOfficeDocuments);
         
         var officeDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgStructure.BranchId, OrgStructure.RegionalOfficeId, OrgStructure.OfficeId))).ToArray();
+            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId, OrgIds.OfficeId))).ToArray();
 
         Assert.Equal(2, officeDocuments.Length);
-        Assert.All(officeDocuments, d => Assert.Equal(OrgStructure.OfficeId, d.OfficeId));
+        Assert.All(officeDocuments, d => Assert.Equal(OrgIds.OfficeId, d.OfficeId));
     }
     
     [Fact]

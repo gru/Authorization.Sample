@@ -17,7 +17,7 @@ public class ResourceAuthorizationModelFactory : IAuthorizationModelFactory<Reso
 
     public ResourceAuthorizationModel PrepareModel()
     {
-        var model = new ResourceAuthorizationModel(GetResourcePolicyRules(), GetRolePolicyRules(), GetPermissionQuery());
+        var model = new ResourceAuthorizationModel(GetResourcePolicyRules(), GetRolePolicyRules(), GetPermissions());
         return model;
     }
 
@@ -30,8 +30,8 @@ public class ResourceAuthorizationModelFactory : IAuthorizationModelFactory<Reso
             select new ResourcePolicyRule
             {
                 UserId = (long) bankUserRole.BankUserId, 
-                Resource = rolePermission.SecurableId,
-                Action = rolePermission.PermissionId, 
+                SecurableId = rolePermission.SecurableId,
+                PermissionId = rolePermission.PermissionId, 
                 BranchId = bankUserRole.BranchId,
                 RegionalOfficeId = bankUserRole.RegionalOfficeId,
                 OfficeId = bankUserRole.OfficeId
@@ -50,7 +50,7 @@ public class ResourceAuthorizationModelFactory : IAuthorizationModelFactory<Reso
             };
     }
 
-    protected IQueryable<Permission> GetPermissionQuery()
+    protected IQueryable<Permission> GetPermissions()
     {
         return _context.Permissions;
     }
