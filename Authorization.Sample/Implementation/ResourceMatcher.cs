@@ -2,9 +2,9 @@ using Authorization.Sample.Entities;
 
 namespace Authorization.Sample.Implementation;
 
-public class ResourcePermissionMatcher : Matcher<ResourceAuthorizationRequest, AuthorizationModel>
+public class ResourceMatcher : Matcher<ResourceAuthorizationRequest, AuthorizationModel>
 {
-    public ResourcePermissionMatcher(
+    public ResourceMatcher(
         IAuthorizationModelFactory<AuthorizationModel> modelFactory) 
         : base(modelFactory)
     {

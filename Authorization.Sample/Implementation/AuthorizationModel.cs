@@ -109,7 +109,9 @@ public class AuthorizationModel
     {
         var id = (BankUserId) userId;
 
-        var query = from bankUserRole in _context.BankUserRoles
+        var bankUserRoles = ApplyEndDateFilter(_context.BankUserRoles, _dateService.UtcNow);
+        
+        var query = from bankUserRole in bankUserRoles
             join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
             where bankUserRole.BankUserId == id && 
                   (rolePermission.SecurableId == securableId || 

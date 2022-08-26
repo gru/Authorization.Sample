@@ -222,7 +222,7 @@ public class DocumentEnforcerTests
         serviceCollection.AddSingleton<IDemoService>(new DemoService(demo));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, AuthorizationModelFactory>();
-        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
+        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceMatcher>();
         serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
         serviceCollection.AddSingleton<AuthorizationEnforcer>();
 

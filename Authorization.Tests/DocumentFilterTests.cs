@@ -135,7 +135,7 @@ public class DocumentFilterTests
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IDemoService>(new DemoService(false));
         serviceCollection.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, AuthorizationModelFactory>();
-        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
+        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceMatcher>();
         serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
         serviceCollection.AddSingleton<IFilter<Document, DocumentFilterRequest>, DocumentFilter>();
         serviceCollection.AddSingleton<AuthorizationEnforcer>();
