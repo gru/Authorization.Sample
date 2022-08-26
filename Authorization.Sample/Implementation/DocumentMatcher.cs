@@ -1,46 +1,23 @@
 using Authorization.Sample.Entities;
-using Authorization.Sample.Services;
 
 namespace Authorization.Sample.Implementation;
 
-public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, DocumentAuthorizationModel>
+public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, AuthorizationModel>
 {
-    private readonly IDemoService _demoService;
-
-    public DocumentMatcher(IAuthorizationModelFactory<DocumentAuthorizationModel> modelFactory, IDemoService demoService) 
+    public DocumentMatcher(IAuthorizationModelFactory<AuthorizationModel> modelFactory) 
         : base(modelFactory)
     {
-        _demoService = demoService;
     }
 
-    protected override IEnumerable<PolicyEffect> Match(DocumentAuthorizationRequest request, DocumentAuthorizationModel model)
+    protected override IEnumerable<PolicyEffect> Match(DocumentAuthorizationRequest request, AuthorizationModel model)
     {
-        if (_demoService.IsDemoModeActive && !model.IsReadOnlyPermission(request.PermissionId))
+        foreach (var rule in model.UserPolicyRules(request.UserId, request.PermissionId, request.OrganizationContext))
         {
-            yield return PolicyEffect.Deny;
-        }
-        else if (model.IsSuperuser(request.UserId))
-        {
-            yield return PolicyEffect.Allow;
-        }
-        else
-        {
-            var query = model.DocumentPolicyRules
-                .Where(r => r.UserId == request.UserId &&
-                            r.DocumentTypeId == request.DocumentTypeId &&
-                            r.PermissionId == request.PermissionId);
-
-            query = model.ApplyOrganizationContextFilter(query, request.OrganizationContext);
-        
-            // проверка на доступ по типу документов
-            if (query.Any())
+            if (model.InRole(request.UserId, RoleId.Superuser) ||
+                model.InDocumentTypeRole(request.UserId, rule.RoleId, request.DocumentTypeId) ||
+                model.InResourceRole(request.UserId, rule.RoleId, SecurableId.Document))
             {
                 yield return PolicyEffect.Allow;
-            }
-            else
-            {
-                if (model.HasPermission(request.UserId, SecurableId.Document, request.PermissionId, request.OrganizationContext))
-                    yield return PolicyEffect.Allow;
             }
         }
     }

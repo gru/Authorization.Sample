@@ -1,31 +1,24 @@
-using Authorization.Sample.Services;
+using Authorization.Sample.Entities;
 
 namespace Authorization.Sample.Implementation;
 
-public class ResourcePermissionMatcher : Matcher<ResourceAuthorizationRequest, ResourceAuthorizationModel>
+public class ResourcePermissionMatcher : Matcher<ResourceAuthorizationRequest, AuthorizationModel>
 {
-    private readonly IDemoService _demoService;
-
     public ResourcePermissionMatcher(
-        IAuthorizationModelFactory<ResourceAuthorizationModel> modelFactory, IDemoService demoService) 
+        IAuthorizationModelFactory<AuthorizationModel> modelFactory) 
         : base(modelFactory)
     {
-        _demoService = demoService;
     }
 
-    protected override IEnumerable<PolicyEffect> Match(ResourceAuthorizationRequest request, ResourceAuthorizationModel model)
+    protected override IEnumerable<PolicyEffect> Match(ResourceAuthorizationRequest request, AuthorizationModel model)
     {
-        if (_demoService.IsDemoModeActive && !model.IsReadOnlyPermission(request.PermissionId))
+        foreach (var rule in model.UserPolicyRules(request.UserId, request.PermissionId, request.OrganizationContext))
         {
-            yield return PolicyEffect.Deny;
-        }
-        else
-        {
-            if (model.IsSuperuser(request.UserId))
+            if (model.InRole(request.UserId, RoleId.Superuser) ||
+                model.InResourceRole(request.UserId, rule.RoleId, request.Resource))
+            {
                 yield return PolicyEffect.Allow;
-
-            if (model.HasPermission(request.UserId, request.Resource, request.PermissionId, request.OrganizationContext))
-                yield return PolicyEffect.Allow;
+            }
         }
     }
 }

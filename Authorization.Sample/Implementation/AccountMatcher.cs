@@ -1,47 +1,23 @@
 using Authorization.Sample.Entities;
-using Authorization.Sample.Services;
 
 namespace Authorization.Sample.Implementation;
 
-public class AccountMatcher : Matcher<AccountAuthorizationRequest, AccountAuthorizationModel>
+public class AccountMatcher : Matcher<AccountAuthorizationRequest, AuthorizationModel>
 {
-    private readonly IDemoService _demoService;
-
-    public AccountMatcher(IAuthorizationModelFactory<AccountAuthorizationModel> modelFactory, IDemoService demoService) 
+    public AccountMatcher(IAuthorizationModelFactory<AuthorizationModel> modelFactory) 
         : base(modelFactory)
     {
-        _demoService = demoService;
     }
 
-    protected override IEnumerable<PolicyEffect> Match(AccountAuthorizationRequest request, AccountAuthorizationModel model)
+    protected override IEnumerable<PolicyEffect> Match(AccountAuthorizationRequest request, AuthorizationModel model)
     {
-        if (_demoService.IsDemoModeActive && !model.IsReadOnlyPermission(request.PermissionId))
+        foreach (var rule in model.UserPolicyRules(request.UserId, request.PermissionId, request.OrganizationContext))
         {
-            yield return PolicyEffect.Deny;
-        }
-        else if (model.IsSuperuser(request.UserId) || model.HasAnyAccountAccess(request.UserId))
-        {
-            yield return PolicyEffect.Allow;
-        }
-        else
-        {
-            var groups = model.GL2Lookup[request.GL2];
-            
-            var query = model.AccountPolicyRules
-                .Where(r => r.UserId == request.UserId &&
-                            r.PermissionId == request.PermissionId &&
-                            groups.Contains(r.GL2GroupId));
-
-            query = model.ApplyOrganizationContextFilter(query, request.OrganizationContext);
-
-            if (query.Any())
+            if (model.InRole(request.UserId, RoleId.Superuser) ||
+                model.InGL2GroupRole(request.UserId, rule.RoleId, request.GL2) ||
+                model.InResourceRole(request.UserId, rule.RoleId, SecurableId.Account))
             {
                 yield return PolicyEffect.Allow;
-            }
-            else
-            {
-                if (model.HasPermission(request.UserId, SecurableId.Account, request.PermissionId, request.OrganizationContext))
-                    yield return PolicyEffect.Allow;
             }
         }
     }
