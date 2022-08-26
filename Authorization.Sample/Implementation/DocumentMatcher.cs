@@ -15,7 +15,7 @@ public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, Authorizati
         {
             if (model.InRole(request.UserId, RoleId.Superuser) ||
                 model.InDocumentTypeRole(request.UserId, rule.RoleId, request.DocumentTypeId) ||
-                model.InResourceRole(request.UserId, rule.RoleId, SecurableId.Document))
+                model.InResourceRole(request.UserId, rule.RoleId, SecurableId.Document, rule.PermissionId))
             {
                 yield return PolicyEffect.Allow;
             }

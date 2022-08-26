@@ -49,8 +49,7 @@ public class AccountEnforcerTests
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<IDemoService>(new DemoService(demo));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
-        serviceCollection.AddSingleton<IAuthorizationModelFactory<ResourceAuthorizationModel>, ResourceAuthorizationModelFactory>();
-        serviceCollection.AddSingleton<IAuthorizationModelFactory<AccountAuthorizationModel>, AccountAuthorizationModelFactory>();
+        serviceCollection.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, AuthorizationModelFactory>();
         serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourcePermissionMatcher>();
         serviceCollection.AddSingleton<IMatcher<AccountAuthorizationRequest>, AccountMatcher>();
         serviceCollection.AddSingleton<AuthorizationEnforcer>();

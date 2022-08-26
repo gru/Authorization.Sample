@@ -15,7 +15,7 @@ public class ResourcePermissionMatcher : Matcher<ResourceAuthorizationRequest, A
         foreach (var rule in model.UserPolicyRules(request.UserId, request.PermissionId, request.OrganizationContext))
         {
             if (model.InRole(request.UserId, RoleId.Superuser) ||
-                model.InResourceRole(request.UserId, rule.RoleId, request.Resource))
+                model.InResourceRole(request.UserId, rule.RoleId, request.Resource, rule.PermissionId))
             {
                 yield return PolicyEffect.Allow;
             }

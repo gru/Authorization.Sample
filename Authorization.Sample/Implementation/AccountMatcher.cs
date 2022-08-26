@@ -15,7 +15,7 @@ public class AccountMatcher : Matcher<AccountAuthorizationRequest, Authorization
         {
             if (model.InRole(request.UserId, RoleId.Superuser) ||
                 model.InGL2GroupRole(request.UserId, rule.RoleId, request.GL2) ||
-                model.InResourceRole(request.UserId, rule.RoleId, SecurableId.Account))
+                model.InResourceRole(request.UserId, rule.RoleId, SecurableId.Account, rule.PermissionId))
             {
                 yield return PolicyEffect.Allow;
             }
