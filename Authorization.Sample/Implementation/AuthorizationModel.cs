@@ -79,14 +79,7 @@ public class AuthorizationModel
 
         return resourceRules.Union(documentRoles).Union(accountGroups);
     }
-    
-    public bool InRole(long userId, RoleId roleId)
-    {
-        var id = (BankUserId)userId;
-        
-        return _context.BankUserRoles.Any(bur => bur.BankUserId == id && bur.RoleId == roleId);
-    }
-    
+
     public bool InResourceRole(long userId, RoleId roleId, SecurableId securableId, PermissionId permissionId)
     {
         var id = (BankUserId) userId;

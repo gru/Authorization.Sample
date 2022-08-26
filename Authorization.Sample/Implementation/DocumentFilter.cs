@@ -11,9 +11,6 @@ public class DocumentFilter : Filter<Document, DocumentFilterRequest, Authorizat
     
     protected override IQueryable<Document> Apply(IQueryable<Document> query, DocumentFilterRequest request, AuthorizationModel model)
     {
-        if (model.InRole(request.UserId, RoleId.Superuser))
-            return query;
-
         // supervisor должен получить все документы без фильтрации по типу и офису
         if (model.HasResourcePermission(request.UserId, SecurableId.Any, PermissionId.Any))
             return query;

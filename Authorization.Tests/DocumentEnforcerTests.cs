@@ -136,29 +136,6 @@ public class DocumentEnforcerTests
     }
     
     [Fact]
-    public void Enforce_Superuser_Permissions()
-    {
-        var enforcer = CreateEnforcer(BankUserId.Superuser);
-        
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.View)));
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.Change)));
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.View)));
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.Change)));
-    }
-
-    [Theory]
-    [ClassData(typeof(OrgStructureClassData))]
-    public void Enforce_Superuser_Permissions_With_OrgContext(OrganizationContext organizationContext)
-    {
-        var enforcer = CreateEnforcer(BankUserId.Superuser);
-        
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.View, organizationContext)));
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.Change, organizationContext)));
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.View, organizationContext)));
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.Change, organizationContext)));
-    }
-    
-    [Fact]
     public void Enforce_Supervisor_Permissions()
     {
         var enforcer = CreateEnforcer(BankUserId.Supervisor);
@@ -185,17 +162,6 @@ public class DocumentEnforcerTests
     public void Enforce_Supervisor_Permissions_Demo()
     {
         var enforcer = CreateEnforcer(BankUserId.Supervisor, true);
-        
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.View)));
-        Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.Change)));
-        Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.View)));
-        Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Guarantee, PermissionId.Change)));
-    }
-    
-    [Fact]
-    public void Enforce_Superuser_Permissions_Demo()
-    {
-        var enforcer = CreateEnforcer(BankUserId.Superuser, true);
         
         Assert.True(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.View)));
         Assert.False(enforcer.Enforce(new DocumentAuthorizationRequest(DocumentTypeId.Account, PermissionId.Change)));

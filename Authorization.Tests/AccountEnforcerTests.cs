@@ -21,17 +21,6 @@ public class AccountEnforcerTests
     }
     
     [Fact]
-    public void Enforce_Superuser_Permissions()
-    {
-        var enforcer = CreateEnforcer(BankUserId.Superuser);
-        
-        Assert.True(enforcer.Enforce(new AccountAuthorizationRequest("30101", PermissionId.View)));
-        Assert.True(enforcer.Enforce(new AccountAuthorizationRequest("30101", PermissionId.Change)));
-        Assert.True(enforcer.Enforce(new AccountAuthorizationRequest("30102", PermissionId.View)));
-        Assert.True(enforcer.Enforce(new AccountAuthorizationRequest("30102", PermissionId.Change)));
-    }
-    
-    [Fact]
     public void Enforce_Supervisor_Permissions()
     {
         var enforcer = CreateEnforcer(BankUserId.Supervisor);

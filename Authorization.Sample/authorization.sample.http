@@ -32,7 +32,7 @@ Content-Type: application/json
 
 ###
 # запросить все документы как суперпользотваль
-GET http://localhost:5136/document?userId=Superuser
+GET http://localhost:5136/document?userId=Supervisor
 Accept: application/json
 
 ###

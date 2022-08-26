@@ -89,25 +89,6 @@ public class DocumentFilterTests
     }
     
     [Fact]
-    public void Enforce_Superuser_Permissions()
-    {
-        var (enforcer, context) = CreateEnforcer(BankUserId.Superuser);
-      
-        var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
-        Assert.Equal(5, documents.Length);
-    }
-    
-    [Theory]
-    [ClassData(typeof(OrgStructureClassData))]
-    public void Enforce_Superuser_Permissions_With_OrgContext(OrganizationContext organizationContext)
-    {
-        var (enforcer, context) = CreateEnforcer(BankUserId.Superuser);
-     
-        var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest(organizationContext)).ToArray();
-        Assert.Equal(5, documents.Length);
-    }
-    
-    [Fact]
     public void Enforce_Supervisor_Permissions()
     {
         var (enforcer, context) = CreateEnforcer(BankUserId.Supervisor);

@@ -60,14 +60,12 @@ public class DataContext : DataConnection
 
         Gl2GroupRolePermissions.Insert(() => new GL2GroupRolePermission { GL2GroupId = GL2GroupIds.Bank, RoleId = RoleId.BankUser, PermissionId = PermissionId.View });
         
-        BankUsers.Insert(() => new BankUser { Id = BankUserId.Superuser });
         BankUsers.Insert(() => new BankUser { Id = BankUserId.BankUser });
         BankUsers.Insert(() => new BankUser { Id = BankUserId.Supervisor });
         BankUsers.Insert(() => new BankUser { Id = BankUserId.BranchUser });
         BankUsers.Insert(() => new BankUser { Id = BankUserId.RegionalOfficeUser });
         BankUsers.Insert(() => new BankUser { Id = BankUserId.OfficeUser });
 
-        BankUserRoles.Insert(() => new BankUserRole { BankUserId = BankUserId.Superuser, RoleId = RoleId.Superuser });
         BankUserRoles.Insert(() => new BankUserRole { BankUserId = BankUserId.BankUser, RoleId = RoleId.BankUser });
         BankUserRoles.Insert(() => new BankUserRole { BankUserId = BankUserId.BankUser, RoleId = RoleId.Supervisor, EndDate = DateTimeOffset.UtcNow.AddYears(-1)});
         BankUserRoles.Insert(() => new BankUserRole { BankUserId = BankUserId.Supervisor, RoleId = RoleId.Supervisor });
@@ -75,7 +73,6 @@ public class DataContext : DataConnection
         BankUserRoles.Insert(() => new BankUserRole { BankUserId = BankUserId.RegionalOfficeUser, RoleId = RoleId.BankUser, BranchId = OrgIds.BranchId, RegionalOfficeId = OrgIds.RegionalOfficeId });
         BankUserRoles.Insert(() => new BankUserRole { BankUserId = BankUserId.OfficeUser, RoleId = RoleId.BankUser, BranchId = OrgIds.BranchId, RegionalOfficeId = OrgIds.RegionalOfficeId, OfficeId = OrgIds.OfficeId });
 
-        Roles.Insert(() => new Role { Id = RoleId.Superuser, Name = nameof(RoleId.Superuser) });
         Roles.Insert(() => new Role { Id = RoleId.BankUser, Name = nameof(RoleId.BankUser) });
         Roles.Insert(() => new Role { Id = RoleId.Supervisor, Name = nameof(RoleId.Supervisor) });
 

@@ -1,3 +1,128 @@
+PUT http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+<> 2022-08-26T184631.200.json
+
+###
+
+PUT http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+<> 2022-08-26T184523.200.json
+
+###
+
+PUT http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+<> 2022-08-26T184359.200.json
+
+###
+
+PUT http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+<> 2022-08-26T184354.200.json
+
+###
+
+GET http://localhost:5136/document?userId=Supervisor
+Accept: application/json
+
+<> 2022-08-26T184336.200.json
+
+###
+
+POST http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "Id": 5,
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+###
+
+POST http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "Id": 5,
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+###
+
+POST http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "Id": 5,
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+###
+
+PUT http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+<> 2022-08-26T184319.200.json
+
+###
+
+GET http://localhost:5136/account/4?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/account/4?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/account/1?userId=BankUser
+Accept: application/json
+
+<> 2022-08-26T184252.200.json
+
+###
+
 GET http://localhost:5136/account/4?userId=BankUser
 Accept: application/json
 
