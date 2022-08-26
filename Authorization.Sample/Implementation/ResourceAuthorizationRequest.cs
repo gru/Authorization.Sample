@@ -4,9 +4,9 @@ namespace Authorization.Sample.Implementation;
 
 public class ResourceAuthorizationRequest : ICurrentUserAuthorizationRequest
 {
-    public ResourceAuthorizationRequest(SecurableId resource, PermissionId permissionId, OrganizationContext organizationContext = null)
+    public ResourceAuthorizationRequest(SecurableId securableId, PermissionId permissionId, OrganizationContext organizationContext = null)
     {
-        Resource = resource;
+        SecurableId = securableId;
         PermissionId = permissionId;
         OrganizationContext = organizationContext;
     }
@@ -15,7 +15,7 @@ public class ResourceAuthorizationRequest : ICurrentUserAuthorizationRequest
     
     public OrganizationContext OrganizationContext { get; set; }
     
-    public SecurableId Resource { get; }
+    public SecurableId SecurableId { get; }
     
     public PermissionId PermissionId { get; }
 }
