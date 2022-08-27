@@ -25,7 +25,7 @@ public class DocumentController : ControllerBase
     public IEnumerable<Document> Get()
     {
         var query = _enforcer
-            .EnforceFilter(_context.Documents, new DocumentFilterRequest());
+            .EnforceFilter(_context.Documents);
         
         return query.ToArray();
     }
@@ -35,7 +35,7 @@ public class DocumentController : ControllerBase
     public Document Get(long id)
     {
         var query = _enforcer
-            .EnforceFilter(_context.Documents, new DocumentFilterRequest());
+            .EnforceFilter(_context.Documents);
         
         return query.SingleOrDefault(d => d.Id == id);
     }

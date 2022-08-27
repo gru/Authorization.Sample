@@ -2,14 +2,14 @@ using Authorization.Sample.Entities;
 
 namespace Authorization.Sample.Implementation;
 
-public class DocumentFilter : Filter<Document, DocumentFilterRequest, AuthorizationModel>
+public class DocumentFilter : Filter<Document, DefaultFilterRequest, AuthorizationModel>
 {
     public DocumentFilter(IAuthorizationModelFactory<AuthorizationModel> modelFactory) 
         : base(modelFactory)
     {
     }
     
-    protected override IQueryable<Document> Apply(IQueryable<Document> query, DocumentFilterRequest request, AuthorizationModel model)
+    protected override IQueryable<Document> Apply(IQueryable<Document> query, DefaultFilterRequest request, AuthorizationModel model)
     {
         // supervisor должен получить все документы без фильтрации по типу и офису
         if (model.InResourceRole(request.UserId, SecurableId.Any, PermissionId.Any, null))

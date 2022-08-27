@@ -1,3 +1,27 @@
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-08-27T075414.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory/2?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/documentationFileCategory/2?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-08-27T075307.200.json
+
+###
+
 PUT http://localhost:5136/document?userId=Supervisor
 Content-Type: application/json
 

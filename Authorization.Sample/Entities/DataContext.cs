@@ -35,6 +35,8 @@ public class DataContext : DataConnection
 
     public ITable<GL2GroupRolePermission> Gl2GroupRolePermissions => this.GetTable<GL2GroupRolePermission>();
 
+    public ITable<DocumentationFileCategory> DocumentationFileCategories => this.GetTable<DocumentationFileCategory>();
+    
     public void CreateTestData()
     {
         this.CreateTable<BankUser>();
@@ -49,6 +51,7 @@ public class DataContext : DataConnection
         this.CreateTable<Account>();
         this.CreateTable<GL2Group>();
         this.CreateTable<GL2GroupRolePermission>();
+        this.CreateTable<DocumentationFileCategory>();
 
         Accounts.Insert(() => new Account { Id = 1, Number = "30101810400000000225", GL2 = "30101" });
         Accounts.Insert(() => new Account { Id = 2, Number = "30101810145250000974", GL2 = "30101" });
@@ -84,7 +87,7 @@ public class DataContext : DataConnection
 
         Securables.Insert(() => new Securable { Id = SecurableId.Document, Name = nameof(SecurableId.Document) });
         Securables.Insert(() => new Securable { Id = SecurableId.Account, Name = nameof(SecurableId.Account) });
-        Securables.Insert(() => new Securable { Id = SecurableId.DocumentationFile, Name = nameof(SecurableId.Account) });
+        Securables.Insert(() => new Securable { Id = SecurableId.DocumentationFile, Name = nameof(SecurableId.DocumentationFile) });
         Securables.Insert(() => new Securable { Id = SecurableId.Any, Name = nameof(SecurableId.Any) });
 
         RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.Supervisor, PermissionId = PermissionId.Any, SecurableId = SecurableId.Any });
@@ -101,5 +104,9 @@ public class DataContext : DataConnection
         
         DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.View });
         DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.Change  });
+        
+        DocumentationFileCategories.Insert(() => new DocumentationFileCategory { CategoryType = DocumentationFileCategoryType.Bank, Name = nameof(DocumentationFileCategoryType.Bank) });
+        DocumentationFileCategories.Insert(() => new DocumentationFileCategory { CategoryType = DocumentationFileCategoryType.Client, Name = nameof(DocumentationFileCategoryType.Client)});
+        DocumentationFileCategories.Insert(() => new DocumentationFileCategory { CategoryType = DocumentationFileCategoryType.All, Name = nameof(DocumentationFileCategoryType.All) });
     }
 }

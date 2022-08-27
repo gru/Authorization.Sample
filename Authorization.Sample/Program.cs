@@ -18,7 +18,8 @@ builder.Services.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, Au
 builder.Services.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceMatcher>();
 builder.Services.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
 builder.Services.AddSingleton<IMatcher<AccountAuthorizationRequest>, AccountMatcher>();
-builder.Services.AddSingleton<IFilter<Document, DocumentFilterRequest>, DocumentFilter>();
+builder.Services.AddSingleton<IFilter<Document, DefaultFilterRequest>, DocumentFilter>();
+builder.Services.AddSingleton<IFilter<DocumentationFileCategory, DefaultFilterRequest>, DocumentationFileCategoryFilter>();
 builder.Services.AddSingleton<AuthorizationEnforcer>();
 
 builder.Services.AddHttpContextAccessor();

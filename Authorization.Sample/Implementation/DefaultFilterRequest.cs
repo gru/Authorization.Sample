@@ -2,9 +2,9 @@ using Authorization.Sample.Entities;
 
 namespace Authorization.Sample.Implementation;
 
-public class DocumentFilterRequest : ICurrentUserAuthorizationRequest
+public class DefaultFilterRequest : ICurrentUserAuthorizationRequest
 {
-    public DocumentFilterRequest(OrganizationContext organizationContext = null, PermissionId permissionId = PermissionId.View)
+    public DefaultFilterRequest(OrganizationContext organizationContext = null, PermissionId permissionId = PermissionId.View)
     {
         PermissionId = permissionId;
         OrganizationContext = organizationContext;

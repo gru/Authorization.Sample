@@ -1,3 +1,4 @@
+using Authorization.Sample.Entities;
 using Authorization.Sample.Services;
 
 namespace Authorization.Sample.Implementation;
@@ -26,6 +27,13 @@ public class AuthorizationEnforcer
         var effects = matcher.Match(request);
         
         return effects.Any(e => e == PolicyEffect.Allow);
+    }
+
+    public IQueryable<T> EnforceFilter<T>(IQueryable<T> query, PermissionId permissionId = PermissionId.View)
+    {
+        var request = new DefaultFilterRequest(permissionId: permissionId);
+        
+        return EnforceFilter(query, request);
     }
 
     public IQueryable<T> EnforceFilter<T, TRequest>(IQueryable<T> query, TRequest request)

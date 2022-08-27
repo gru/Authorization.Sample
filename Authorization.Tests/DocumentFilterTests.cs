@@ -15,7 +15,7 @@ public class DocumentFilterTests
     {
         var (enforcer, context) = CreateEnforcer(BankUserId.BankUser);
 
-        var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
+        var documents = enforcer.EnforceFilter(context.Documents, new DefaultFilterRequest()).ToArray();
         
         Assert.Equal(3, documents.Length);
         Assert.All(documents, d => Assert.Equal(DocumentTypeId.Account, d.DocumentTypeId));
@@ -26,12 +26,12 @@ public class DocumentFilterTests
     {
         var (enforcer, context) = CreateEnforcer(BankUserId.BankUser);
 
-        var accountForChange = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest(permissionId: PermissionId.Change)).ToArray();
+        var accountForChange = enforcer.EnforceFilter(context.Documents, new DefaultFilterRequest(permissionId: PermissionId.Change)).ToArray();
         
         Assert.Equal(3, accountForChange.Length);
         Assert.All(accountForChange, d => Assert.Equal(DocumentTypeId.Account, d.DocumentTypeId));
 
-        var accountsForDelete = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest(permissionId: PermissionId.Delete)).ToArray();
+        var accountsForDelete = enforcer.EnforceFilter(context.Documents, new DefaultFilterRequest(permissionId: PermissionId.Delete)).ToArray();
         Assert.Empty(accountsForDelete);
     }
 
@@ -40,23 +40,23 @@ public class DocumentFilterTests
     {
         var (enforcer, context) = CreateEnforcer(BankUserId.RegionalOfficeUser);
         
-        var rootDocuments = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
+        var rootDocuments = enforcer.EnforceFilter(context.Documents, new DefaultFilterRequest()).ToArray();
         
         Assert.Empty(rootDocuments);
 
         var branchDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId))).ToArray();
+            new DefaultFilterRequest(new OrganizationContext(OrgIds.BranchId))).ToArray();
 
         Assert.Empty(branchDocuments);
         
         var regionalOfficeDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId))).ToArray();
+            new DefaultFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId))).ToArray();
         
         Assert.Equal(3, regionalOfficeDocuments.Length);
         Assert.All(regionalOfficeDocuments, d => Assert.Equal(OrgIds.BranchId, d.BranchId));
         
         var officeDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId, OrgIds.OfficeId))).ToArray();
+            new DefaultFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId, OrgIds.OfficeId))).ToArray();
 
         Assert.Equal(2, officeDocuments.Length);
         Assert.All(officeDocuments, d => Assert.Equal(OrgIds.OfficeId, d.OfficeId));
@@ -67,22 +67,22 @@ public class DocumentFilterTests
     {
         var (enforcer, context) = CreateEnforcer(BankUserId.OfficeUser);
         
-        var rootDocuments = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
+        var rootDocuments = enforcer.EnforceFilter(context.Documents, new DefaultFilterRequest()).ToArray();
         
         Assert.Empty(rootDocuments);
 
         var branchDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId))).ToArray();
+            new DefaultFilterRequest(new OrganizationContext(OrgIds.BranchId))).ToArray();
 
         Assert.Empty(branchDocuments);
         
         var regionalOfficeDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId))).ToArray();
+            new DefaultFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId))).ToArray();
         
         Assert.Empty(regionalOfficeDocuments);
         
         var officeDocuments = enforcer.EnforceFilter(context.Documents, 
-            new DocumentFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId, OrgIds.OfficeId))).ToArray();
+            new DefaultFilterRequest(new OrganizationContext(OrgIds.BranchId, OrgIds.RegionalOfficeId, OrgIds.OfficeId))).ToArray();
 
         Assert.Equal(2, officeDocuments.Length);
         Assert.All(officeDocuments, d => Assert.Equal(OrgIds.OfficeId, d.OfficeId));
@@ -93,7 +93,7 @@ public class DocumentFilterTests
     {
         var (enforcer, context) = CreateEnforcer(BankUserId.Supervisor);
 
-        var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest()).ToArray();
+        var documents = enforcer.EnforceFilter(context.Documents).ToArray();
         Assert.Equal(5, documents.Length);
     }
     
@@ -103,7 +103,7 @@ public class DocumentFilterTests
     {
         var (enforcer, context) = CreateEnforcer(BankUserId.Supervisor);
 
-        var documents = enforcer.EnforceFilter(context.Documents, new DocumentFilterRequest(organizationContext)).ToArray();
+        var documents = enforcer.EnforceFilter(context.Documents, new DefaultFilterRequest( organizationContext)).ToArray();
         Assert.Equal(5, documents.Length);
     }
     
@@ -118,7 +118,7 @@ public class DocumentFilterTests
         serviceCollection.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, AuthorizationModelFactory>();
         serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceMatcher>();
         serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
-        serviceCollection.AddSingleton<IFilter<Document, DocumentFilterRequest>, DocumentFilter>();
+        serviceCollection.AddSingleton<IFilter<Document, DefaultFilterRequest>, DocumentFilter>();
         serviceCollection.AddSingleton<AuthorizationEnforcer>();
 
         var enforcer = serviceCollection.BuildServiceProvider().GetService<AuthorizationEnforcer>(); 

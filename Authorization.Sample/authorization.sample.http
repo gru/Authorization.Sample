@@ -1,10 +1,22 @@
-# Запросить документ по id как BankUser, BankUser имеет доступ к счетам с gl2 30101
+# Запросить доступные категории файлов документации
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+###
+
+# Запросить не доступный для банковского пользователя категорию файлов документации
+GET http://localhost:5136/documentationFileCategory/2?userId=BankUser
+Accept: application/json
+
+###
+
+# Запросить счет по id как BankUser, BankUser имеет доступ к счетам с gl2 30101
 GET http://localhost:5136/account/1?userId=BankUser
 Accept: application/json
 
 ###
 
-# Запросить документ по id как BankUser, BankUser не имеет доступа к счетам с gl2 30102
+# Запросить счет по id как BankUser, BankUser не имеет доступа к счетам с gl2 30102
 GET http://localhost:5136/account/4?userId=BankUser
 Accept: application/json
 
