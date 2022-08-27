@@ -12,7 +12,7 @@ public class DocumentFilter : Filter<Document, DocumentFilterRequest, Authorizat
     protected override IQueryable<Document> Apply(IQueryable<Document> query, DocumentFilterRequest request, AuthorizationModel model)
     {
         // supervisor должен получить все документы без фильтрации по типу и офису
-        if (model.HasResourcePermission(request.UserId, SecurableId.Any, PermissionId.Any))
+        if (model.InResourceRole(request.UserId, SecurableId.Any, PermissionId.Any, null))
             return query;
         
         if (request.OrganizationContext != null)
@@ -23,7 +23,7 @@ public class DocumentFilter : Filter<Document, DocumentFilterRequest, Authorizat
         }
 
         // если есть разрешение на ресурс, то нужно вернуть все документы без фильтрации по типу
-        if (model.HasResourcePermission(request.UserId, SecurableId.Document, request.PermissionId))
+        if (model.InResourceRole(request.UserId, SecurableId.Document, request.PermissionId, request.OrganizationContext))
             return query;
         
         // получаем разрещенные обекты

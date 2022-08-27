@@ -11,13 +11,10 @@ public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, Authorizati
 
     protected override IEnumerable<PolicyEffect> Match(DocumentAuthorizationRequest request, AuthorizationModel model)
     {
-        foreach (var rule in model.UserPolicyRules(request.UserId, request.PermissionId, request.OrganizationContext))
+        if (model.InDocumentTypeRole(request.UserId, request.DocumentTypeId, request.PermissionId, request.OrganizationContext) ||
+            model.InResourceRole(request.UserId, SecurableId.Document, request.PermissionId, request.OrganizationContext))
         {
-            if (model.InDocumentTypeRole(request.UserId, rule.RoleId, request.DocumentTypeId, rule.PermissionId) ||
-                model.InResourceRole(request.UserId, rule.RoleId, SecurableId.Document, rule.PermissionId))
-            {
-                yield return PolicyEffect.Allow;
-            }
+            yield return PolicyEffect.Allow;
         }
     }
 }

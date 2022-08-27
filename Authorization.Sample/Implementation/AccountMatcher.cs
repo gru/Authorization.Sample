@@ -11,13 +11,10 @@ public class AccountMatcher : Matcher<AccountAuthorizationRequest, Authorization
 
     protected override IEnumerable<PolicyEffect> Match(AccountAuthorizationRequest request, AuthorizationModel model)
     {
-        foreach (var rule in model.UserPolicyRules(request.UserId, request.PermissionId, request.OrganizationContext))
+        if (model.InGL2GroupRole(request.UserId, request.GL2, request.PermissionId, request.OrganizationContext) ||
+            model.InResourceRole(request.UserId, SecurableId.Account, request.PermissionId, request.OrganizationContext))
         {
-            if (model.InGL2GroupRole(request.UserId, rule.RoleId, request.GL2, rule.PermissionId) ||
-                model.InResourceRole(request.UserId, rule.RoleId, SecurableId.Account, rule.PermissionId))
-            {
-                yield return PolicyEffect.Allow;
-            }
+            yield return PolicyEffect.Allow;
         }
     }
 }
