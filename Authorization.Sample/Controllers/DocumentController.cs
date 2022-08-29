@@ -59,7 +59,7 @@ public class DocumentController : ControllerBase
     [HttpPost]
     public void Post(Document document)
     {
-        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document.DocumentTypeId, PermissionId.Change)))
+        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document, PermissionId.Change)))
         {
             _context.Documents
                 .Where(d => d.Id == document.Id)
