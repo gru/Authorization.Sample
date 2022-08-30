@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
 using Authorization.Sample.Services;
+using Casbin;
 using LinqToDB.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,8 @@ var connectionOptions = new LinqToDBConnectionOptionsBuilder()
     .UseSQLite("Data Source=:memory:")
     .Build();
 builder.Services.AddSingleton(new DataContext(connectionOptions));
+builder.Services.AddSingleton(new CasbinAuthorizationModelOptions());
+builder.Services.AddSingleton<IAuthorizationModelFactory<IEnforcer>, CasbinAuthorizationModelFactory>();
 builder.Services.AddSingleton<IDemoService>(new DemoService(false));
 builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<ICurrentDateService>(new CurrentDateService());
@@ -18,7 +21,7 @@ builder.Services.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, Au
 builder.Services.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceMatcher>();
 builder.Services.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
 builder.Services.AddSingleton<IMatcher<AccountAuthorizationRequest>, AccountMatcher>();
-builder.Services.AddSingleton<IFilter<Document, DefaultFilterRequest>, DocumentFilter>();
+builder.Services.AddSingleton<IFilter<Document, DefaultFilterRequest>, DocumentCasbinFilter>();
 builder.Services.AddSingleton<IFilter<DocumentationFileCategory, DefaultFilterRequest>, DocumentationFileCategoryFilter>();
 builder.Services.AddSingleton<AuthorizationEnforcer>();
 

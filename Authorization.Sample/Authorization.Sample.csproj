@@ -7,8 +7,22 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Casbin.NET" Version="2.0.0-preview.4" />
         <PackageReference Include="linq2db.SQLite" Version="4.1.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="model.conf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="policy.csv">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Implementation\Casbin" />
     </ItemGroup>
 
 </Project>

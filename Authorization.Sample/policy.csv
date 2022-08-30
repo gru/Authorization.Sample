@@ -1,0 +1,5 @@
+p, BankUser, DocumentationFile, View
+p, Supervisor, *, *
+
+p2, BankUser, Account, View
+p2, BankUser, Account, Change
