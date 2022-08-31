@@ -1,5 +1,6 @@
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
+using Authorization.Sample.Services;
 using Microsoft.AspNetCore.Mvc;
 using LinqToDB;
 using DataContext = Authorization.Sample.Entities.DataContext;
@@ -20,6 +21,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [SecurablePermission(SecurableId.Account, PermissionId.View)]
     public Account Get(long id)
     {
         var account = _context.Accounts.SingleOrDefault(a => a.Id == id);
@@ -32,6 +34,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPut]
+    [SecurablePermission(SecurableId.Account, PermissionId.Create)]
     public long Put([FromQuery] string accountNumber)
     {
         if (TryGetGL2(accountNumber, out var gl2))
@@ -47,6 +50,7 @@ public class AccountController : ControllerBase
     }
     
     [HttpPost("{id}")]
+    [SecurablePermission(SecurableId.Account, PermissionId.Change)]
     public void Post(long id, [FromQuery] string accountNumber)
     {
         if (TryGetGL2(accountNumber, out var gl2))
@@ -63,6 +67,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [SecurablePermission(SecurableId.Account, PermissionId.Delete)]
     public void Delete(long id)
     {
         var account = _context.Accounts.SingleOrDefault(a => a.Id == id);
