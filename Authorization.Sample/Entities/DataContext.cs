@@ -27,15 +27,13 @@ public class DataContext : DataConnection
     
     public ITable<DocumentType> DocumentTypes => this.GetTable<DocumentType>();
     
-    public ITable<DocumentTypeRolePermission> DocumentTypeRolePermissions => this.GetTable<DocumentTypeRolePermission>();
-
     public ITable<Account> Accounts => this.GetTable<Account>();
 
     public ITable<GL2Group> Gl2Groups => this.GetTable<GL2Group>();
 
-    public ITable<GL2GroupRolePermission> Gl2GroupRolePermissions => this.GetTable<GL2GroupRolePermission>();
-
     public ITable<DocumentationFileCategory> DocumentationFileCategories => this.GetTable<DocumentationFileCategory>();
+
+    public ITable<ResourceType> ResourceTypes => this.GetTable<ResourceType>();
     
     public void CreateTestData()
     {
@@ -47,11 +45,10 @@ public class DataContext : DataConnection
         this.CreateTable<Document>();
         this.CreateTable<BankUserRole>();
         this.CreateTable<RolePermission>();
-        this.CreateTable<DocumentTypeRolePermission>();
         this.CreateTable<Account>();
         this.CreateTable<GL2Group>();
-        this.CreateTable<GL2GroupRolePermission>();
         this.CreateTable<DocumentationFileCategory>();
+        this.CreateTable<ResourceType>();
 
         Accounts.Insert(() => new Account { Id = 1, Number = "30101810400000000225", GL2 = "30101" });
         Accounts.Insert(() => new Account { Id = 2, Number = "30101810145250000974", GL2 = "30101" });
@@ -61,8 +58,6 @@ public class DataContext : DataConnection
         Gl2Groups.Insert(() => new GL2Group { GL2GroupId = GL2GroupIds.Bank, GL2 = "30101" });
         Gl2Groups.Insert(() => new GL2Group { GL2GroupId = GL2GroupIds.Credit, GL2 = "30102" });
 
-        Gl2GroupRolePermissions.Insert(() => new GL2GroupRolePermission { GL2GroupId = GL2GroupIds.Bank, RoleId = RoleId.BankUser, PermissionId = PermissionId.View });
-        
         BankUsers.Insert(() => new BankUser { Id = BankUserId.BankUser });
         BankUsers.Insert(() => new BankUser { Id = BankUserId.Supervisor });
         BankUsers.Insert(() => new BankUser { Id = BankUserId.BranchUser });
@@ -92,6 +87,9 @@ public class DataContext : DataConnection
 
         RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.Supervisor, PermissionId = PermissionId.Any, SecurableId = SecurableId.Any });
         RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.DocumentationFile });
+        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Account, ResourceTypeId = ResourceTypeId.GL2Group, ResourceId = GL2GroupIds.Bank });
+        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Document, ResourceTypeId = ResourceTypeId.DocumentType, ResourceId = (long) DocumentTypeId.Account });
+        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.Change, SecurableId = SecurableId.Document, ResourceTypeId = ResourceTypeId.DocumentType, ResourceId = (long) DocumentTypeId.Account });
         
         Documents.Insert(() => new Document { Id = 1, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Account });
         Documents.Insert(() => new Document { Id = 2, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Account });
@@ -102,11 +100,11 @@ public class DataContext : DataConnection
         DocumentTypes.Insert(() => new DocumentType { Id = DocumentTypeId.Account, Name = nameof(DocumentTypeId.Account) });
         DocumentTypes.Insert(() => new DocumentType { Id = DocumentTypeId.Guarantee, Name = nameof(DocumentTypeId.Guarantee) });
         
-        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.View });
-        DocumentTypeRolePermissions.Insert(() => new DocumentTypeRolePermission { RoleId = RoleId.BankUser, DocumentTypeId = DocumentTypeId.Account, PermissionId = PermissionId.Change  });
-        
         DocumentationFileCategories.Insert(() => new DocumentationFileCategory { CategoryType = DocumentationFileCategoryType.Bank, Name = nameof(DocumentationFileCategoryType.Bank) });
         DocumentationFileCategories.Insert(() => new DocumentationFileCategory { CategoryType = DocumentationFileCategoryType.Client, Name = nameof(DocumentationFileCategoryType.Client)});
         DocumentationFileCategories.Insert(() => new DocumentationFileCategory { CategoryType = DocumentationFileCategoryType.All, Name = nameof(DocumentationFileCategoryType.All) });
+
+        ResourceTypes.Insert(() => new ResourceType { Id = ResourceTypeId.DocumentType, Name = nameof(ResourceTypeId.DocumentType) });
+        ResourceTypes.Insert(() => new ResourceType { Id = ResourceTypeId.GL2Group, Name = nameof(ResourceTypeId.GL2Group) });
     }
 }

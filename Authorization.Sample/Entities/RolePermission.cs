@@ -14,6 +14,12 @@ public class RolePermission
     
     [Column(Name = "securable_id", DataType = DataType.Long, CanBeNull = false)]
     public SecurableId SecurableId { get; set; }
+
+    [Column(Name = "resource_type_id", DataType = DataType.Long, CanBeNull = true)]
+    public ResourceTypeId? ResourceTypeId { get; set; }
+
+    [Column(Name = "resource_id", DataType = DataType.Long, CanBeNull = true)]
+    public long? ResourceId { get; set; }
     
     [Column(Name = "permission_id", DataType = DataType.Long, CanBeNull = false)]
     public PermissionId PermissionId { get; set; }

@@ -59,11 +59,12 @@ public class AuthorizationModel
         
         var documentRoles = 
             from bankUserRole in userRoles
-            join documentTypeRolePermission in _context.DocumentTypeRolePermissions on bankUserRole.RoleId equals documentTypeRolePermission.RoleId
+            join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
             where bankUserRole.BankUserId == id && 
-                  documentTypeRolePermission.DocumentTypeId == documentTypeId &&
-                  (documentTypeRolePermission.PermissionId == permissionId ||
-                   documentTypeRolePermission.PermissionId == PermissionId.Any)
+                  (rolePermission.ResourceId == (long) documentTypeId ||
+                   rolePermission.ResourceId == null) &&
+                  (rolePermission.PermissionId == permissionId ||
+                   rolePermission.PermissionId == PermissionId.Any)
             select 1;
         
         return documentRoles.Any();
@@ -74,14 +75,21 @@ public class AuthorizationModel
         var bankRoleFilters = ApplyUserBankRoleFilters(_context.BankUserRoles, organizationContext);
 
         var id = (BankUserId) userId;
-        
+
         var query =
             from bankUserRole in bankRoleFilters
-            join documentTypeRolePermission in _context.DocumentTypeRolePermissions on bankUserRole.RoleId equals documentTypeRolePermission.RoleId
-            where bankUserRole.BankUserId == id && documentTypeRolePermission.PermissionId == permissionId
-            select documentTypeRolePermission.DocumentTypeId;
+            join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
+            where bankUserRole.BankUserId == id &&
+                  rolePermission.PermissionId == permissionId &&
+                  rolePermission.SecurableId == SecurableId.Document &&
+                  rolePermission.ResourceTypeId == ResourceTypeId.DocumentType
+            select rolePermission.ResourceId;
 
-        return query;
+        var documentTypeIds = query.Any(t => t == null) 
+            ? _context.DocumentTypes.Select(dt => dt.Id).ToArray()
+            : query.Select(t => (DocumentTypeId) t).ToArray();
+        
+        return documentTypeIds;
     }
     
     public bool InGL2GroupRole(long userId, string gl2, PermissionId permissionId, OrganizationContext organizationContext)
@@ -96,16 +104,18 @@ public class AuthorizationModel
 
         var query = 
             from bankUserRole in userRoles
-            join gl2GroupRolePermission in _context.Gl2GroupRolePermissions on bankUserRole.RoleId equals gl2GroupRolePermission.RoleId
-            where bankUserRole.BankUserId == id && 
-                  groups.Contains(gl2GroupRolePermission.GL2GroupId) &&
-                  (gl2GroupRolePermission.PermissionId == permissionId ||
-                   gl2GroupRolePermission.PermissionId == PermissionId.Any)
+            join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
+            where bankUserRole.BankUserId == id &&
+                  rolePermission.ResourceTypeId == ResourceTypeId.GL2Group &&
+                  (groups.Contains(rolePermission.ResourceId.Value) ||
+                   rolePermission.ResourceId == null) &&
+                  (rolePermission.PermissionId == permissionId ||
+                   rolePermission.PermissionId == PermissionId.Any)
             select new PolicyRule
             {
                 UserId = (long)bankUserRole.BankUserId,
-                PermissionId = gl2GroupRolePermission.PermissionId,
-                RoleId = gl2GroupRolePermission.RoleId
+                PermissionId = rolePermission.PermissionId,
+                RoleId = rolePermission.RoleId
             };
         
         return query.Any();
