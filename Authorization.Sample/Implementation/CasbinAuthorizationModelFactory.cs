@@ -8,13 +8,15 @@ namespace Authorization.Sample.Implementation;
 public class CasbinAuthorizationModelFactory : IAuthorizationModelFactory<IEnforcer>
 {
     private readonly ICurrentDateService _currentDateService;
+    private readonly IDemoService _demoService;
     private readonly DataContext _context;
     private readonly CasbinAuthorizationModelOptions _options;
 
     public CasbinAuthorizationModelFactory(
-        ICurrentDateService currentDateService, DataContext context, CasbinAuthorizationModelOptions options)
+        ICurrentDateService currentDateService, IDemoService demoService, DataContext context, CasbinAuthorizationModelOptions options)
     {
         _currentDateService = currentDateService;
+        _demoService = demoService;
         _context = context;
         _options = options;
     }
@@ -22,7 +24,8 @@ public class CasbinAuthorizationModelFactory : IAuthorizationModelFactory<IEnfor
     public IEnforcer PrepareModel()
     {
         var enforcer = new Enforcer(_options.ModelPath, _options.PolicyPath);
-
+        enforcer.AddFunction("ro", IsReadOnlyPermission);
+        
         var roleManager = new DefaultRoleManager(0);
         roleManager.AddDomainMatchingFunc((arg1, arg2) => arg1 == arg2);
         enforcer.Model.SetRoleManager("g", roleManager);
@@ -74,5 +77,17 @@ public class CasbinAuthorizationModelFactory : IAuthorizationModelFactory<IEnfor
                  (ctxRegionalOfficeId == "*" && ctxOfficeId != "*") || 
                  (burRegionalOfficeId == ctxRegionalOfficeId)) && 
                 (burOfficeId == "*" || burOfficeId == ctxOfficeId));
+    }
+
+    private bool IsReadOnlyPermission(string permissionId)
+    {
+        if (!_demoService.IsDemoModeActive) 
+            return true;
+        
+        if (permissionId == "*") 
+            return false;
+        
+        var id = Enum.Parse<PermissionId>(permissionId);
+        return _context.Permissions.Any(p => p.Id == id && p.IsReadonly);
     }
 }
