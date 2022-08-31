@@ -21,7 +21,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpGet]
-    [ResourcePermission(SecurableId.DocumentationFile, PermissionId.View)]
+    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.View)]
     public IEnumerable<DocumentationFileCategory> Get()
     {
         var query = _enforcer
@@ -31,7 +31,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [ResourcePermission(SecurableId.DocumentationFile, PermissionId.View)]
+    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.View)]
     public DocumentationFileCategory Get(long id)
     {
         var query = _enforcer
@@ -41,7 +41,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpPut]
-    [ResourcePermission(SecurableId.DocumentationFile, PermissionId.Create)]
+    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.Create)]
     public long Put(DocumentationFileCategory category)
     {
         return _context.DocumentationFileCategories
@@ -53,7 +53,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpPost]
-    [ResourcePermission(SecurableId.DocumentationFile, PermissionId.Change)]
+    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.Change)]
     public void Post(DocumentationFileCategory category)
     {
         _context.DocumentationFileCategories
@@ -64,7 +64,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpDelete]
-    [ResourcePermission(SecurableId.DocumentationFile, PermissionId.Delete)]
+    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.Delete)]
     public void Delete(long id)
     {
         var document = _context.DocumentationFileCategories.SingleOrDefault(d => d.Id == id);

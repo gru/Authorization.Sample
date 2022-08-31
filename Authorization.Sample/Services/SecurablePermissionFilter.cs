@@ -6,13 +6,13 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Authorization.Sample.Services;
 
-public sealed class ResourcePermissionFilter : IAuthorizationFilter
+public sealed class SecurablePermissionFilter : IAuthorizationFilter
 {
     private readonly SecurableId _securableId;
     private readonly PermissionId _permissionId;
     private readonly AuthorizationEnforcer _enforcer;
     
-    public ResourcePermissionFilter(Tuple<SecurableId, PermissionId> pair, AuthorizationEnforcer enforcer)
+    public SecurablePermissionFilter(Tuple<SecurableId, PermissionId> pair, AuthorizationEnforcer enforcer)
     {
         _securableId = pair.Item1;
         _permissionId = pair.Item2; 

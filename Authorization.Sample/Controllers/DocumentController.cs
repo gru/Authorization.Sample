@@ -21,7 +21,7 @@ public class DocumentController : ControllerBase
     }
 
     [HttpGet]
-    [ResourcePermission(SecurableId.Document, PermissionId.View)]
+    [SecurablePermission(SecurableId.Document, PermissionId.View)]
     public IEnumerable<Document> Get()
     {
         var query = _enforcer
@@ -31,7 +31,7 @@ public class DocumentController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [ResourcePermission(SecurableId.Document, PermissionId.View)]
+    [SecurablePermission(SecurableId.Document, PermissionId.View)]
     public Document Get(long id)
     {
         var query = _enforcer
@@ -41,6 +41,7 @@ public class DocumentController : ControllerBase
     }
     
     [HttpPut]
+    [SecurablePermission(SecurableId.Document, PermissionId.Create)]
     public long Put(Document document)
     {
         if (_enforcer.Enforce(new DocumentAuthorizationRequest(document.DocumentTypeId, PermissionId.Create)))
@@ -57,6 +58,7 @@ public class DocumentController : ControllerBase
     }
     
     [HttpPost]
+    [SecurablePermission(SecurableId.Document, PermissionId.Change)]
     public void Post(Document document)
     {
         if (_enforcer.Enforce(new DocumentAuthorizationRequest(document, PermissionId.Change)))
@@ -71,6 +73,7 @@ public class DocumentController : ControllerBase
     }
     
     [HttpDelete]
+    [SecurablePermission(SecurableId.Document, PermissionId.Delete)]
     public void Delete(long id)
     {
         var document = _context.Documents.SingleOrDefault(d => d.Id == id);
