@@ -16,10 +16,20 @@ public class DocumentCasbinFilter : Filter<Document, DefaultFilterRequest, IEnfo
         var act = request.PermissionId.ToString();
         var ctx = request.OrganizationContext.ToCasbinString();
 
+        const string documentTypeSection = "p2";
+        
+        var documentTypeAssertion = enforcer.PolicyManager
+            .Sections[PermConstants.DefaultPolicyType][documentTypeSection];
+        
+        var subIndex = documentTypeAssertion.Tokens["sub"];
+        var actIndex = documentTypeAssertion.Tokens["act"];
+        var typeIndex = documentTypeAssertion.Tokens["type"];
+        
         var roles = enforcer.GetImplicitRolesForUser(sub, ctx);
-        var allowedDocumentTypes = enforcer.GetFilteredNamedPolicy("p2", 0, roles.ToArray())
-            .Where(p => p.ElementAt(2) == act)
-            .Select(p => Enum.Parse<DocumentTypeId>(p.ElementAt(1)));
+        var allowedDocumentTypes = enforcer
+            .GetFilteredNamedPolicy(documentTypeSection, subIndex, roles.ToArray())
+            .Where(p => p.ElementAt(actIndex) == act)
+            .Select(p => Enum.Parse<DocumentTypeId>(p.ElementAt(typeIndex)));
         
         query = query.Where(d => allowedDocumentTypes.Contains(d.DocumentTypeId));
 
