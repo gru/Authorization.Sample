@@ -61,8 +61,10 @@ public class AuthorizationModel
             from bankUserRole in userRoles
             join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
             where bankUserRole.BankUserId == id &&
-                  rolePermission.SecurableId == securableId &&
-                  rolePermission.ResourceTypeId == resourceTypeId &&
+                  (rolePermission.SecurableId == securableId ||
+                   rolePermission.SecurableId == SecurableId.Any) &&
+                  (rolePermission.ResourceTypeId == resourceTypeId ||
+                   rolePermission.ResourceTypeId == null) &&
                   (rolePermission.ResourceId == resourceId ||
                    rolePermission.ResourceId == null) &&
                   (rolePermission.PermissionId == permissionId ||
@@ -85,8 +87,10 @@ public class AuthorizationModel
             from bankUserRole in userRoles
             join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
             where bankUserRole.BankUserId == id &&
-                  rolePermission.SecurableId == securableId &&
-                  rolePermission.ResourceTypeId == resourceTypeId &&
+                  (rolePermission.SecurableId == securableId ||
+                   rolePermission.SecurableId == SecurableId.Any) &&
+                  (rolePermission.ResourceTypeId == resourceTypeId ||
+                   rolePermission.ResourceTypeId == null) &&
                   (resourceIds.Contains(rolePermission.ResourceId.Value) ||
                    rolePermission.ResourceId == null) &&
                   (rolePermission.PermissionId == permissionId ||
@@ -128,7 +132,7 @@ public class AuthorizationModel
             from documentType in _context.DocumentTypes
             select documentType.Id;
 
-        return ExpandIfResourceIdsContainsNull(query.ToArray(), allDocumentTypes);
+        return ExpandIfResourceIdsContainsNull(query.ToArray(), allDocumentTypes, t => (DocumentTypeId) t);
     }
     
     private IQueryable<BankUserRole> ApplyUserBankRoleFilters(IQueryable<BankUserRole> query, OrganizationContext ctx)
@@ -159,10 +163,10 @@ public class AuthorizationModel
         return _options.AllowReadPermissionsOnly && !_readOnlyPermissions.Value.Contains(permissionId);
     }
 
-    private static IEnumerable<T> ExpandIfResourceIdsContainsNull<T>(IReadOnlyCollection<long?> resourceIds, IQueryable<T> query)
+    private static IEnumerable<T> ExpandIfResourceIdsContainsNull<T>(IReadOnlyCollection<long?> resourceIds, IQueryable<T> query, Func<long, T> selector)
     {
         return resourceIds.Any(id => id == null)
             ? query.AsEnumerable()
-            : resourceIds.Select(id => id).Cast<T>();
+            : resourceIds.Select(id => id.Value).Select(selector);
     }
 }

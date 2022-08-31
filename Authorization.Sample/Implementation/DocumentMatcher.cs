@@ -12,8 +12,6 @@ public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, Authorizati
     protected override IEnumerable<PolicyEffect> Match(DocumentAuthorizationRequest request, AuthorizationModel model)
     {
         if (model.HasPermission(request.UserId, SecurableId.Document, ResourceTypeId.DocumentType, (long) request.DocumentTypeId, request.PermissionId, request.OrganizationContext))
-        {
             yield return PolicyEffect.Allow;
-        }
     }
 }

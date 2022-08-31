@@ -22,10 +22,6 @@ public class DocumentFilter : Filter<Document, DefaultFilterRequest, Authorizati
                             (d.OfficeId == request.OrganizationContext.OfficeId || request.OrganizationContext.OfficeId == null));
         }
 
-        // если есть разрешение на ресурс, то нужно вернуть все документы без фильтрации по типу
-        if (model.HasPermission(request.UserId, SecurableId.Document, request.PermissionId, request.OrganizationContext))
-            return query;
-        
         // получаем разрещенные обекты
         var allowedDocumentTypes = model.UserAllowedDocumentTypes(request.UserId, request.PermissionId, request.OrganizationContext);
 
