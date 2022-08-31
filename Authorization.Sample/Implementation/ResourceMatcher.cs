@@ -8,9 +8,12 @@ public class ResourceMatcher : Matcher<ResourceAuthorizationRequest, Authorizati
     {
     }
 
-    protected override IEnumerable<PolicyEffect> Match(ResourceAuthorizationRequest request, AuthorizationModel model)
+    protected override bool Match(ResourceAuthorizationRequest request, AuthorizationModel model)
     {
-        if (model.HasPermission(request.UserId, request.SecurableId, request.PermissionId, request.OrganizationContext))
-            yield return PolicyEffect.Allow;
+        return model.HasPermission(
+            userId: request.UserId,
+            securableId: request.SecurableId,
+            permissionId: request.PermissionId,
+            organizationContext: request.OrganizationContext);
     }
 }

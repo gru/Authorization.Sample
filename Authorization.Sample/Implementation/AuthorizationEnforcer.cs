@@ -24,9 +24,7 @@ public class AuthorizationEnforcer
 
         var matcher = _serviceProvider.GetRequiredService<IMatcher<TRequest>>();
         
-        var effects = matcher.Match(request);
-        
-        return effects.Any(e => e == PolicyEffect.Allow);
+        return matcher.Match(request);
     }
 
     public IQueryable<T> EnforceFilter<T>(IQueryable<T> query, PermissionId permissionId = PermissionId.View)

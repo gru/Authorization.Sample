@@ -9,9 +9,14 @@ public class DocumentMatcher : Matcher<DocumentAuthorizationRequest, Authorizati
     {
     }
 
-    protected override IEnumerable<PolicyEffect> Match(DocumentAuthorizationRequest request, AuthorizationModel model)
+    protected override bool Match(DocumentAuthorizationRequest request, AuthorizationModel model)
     {
-        if (model.HasPermission(request.UserId, SecurableId.Document, ResourceTypeId.DocumentType, (long) request.DocumentTypeId, request.PermissionId, request.OrganizationContext))
-            yield return PolicyEffect.Allow;
+        return model.HasPermission(
+            userId: request.UserId,
+            securableId: SecurableId.Document,
+            resourceTypeId: ResourceTypeId.DocumentType,
+            resourceId: (long) request.DocumentTypeId,
+            permissionId: request.PermissionId,
+            organizationContext: request.OrganizationContext);
     }
 }

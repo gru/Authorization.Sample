@@ -9,9 +9,12 @@ public class AccountMatcher : Matcher<AccountAuthorizationRequest, Authorization
     {
     }
 
-    protected override IEnumerable<PolicyEffect> Match(AccountAuthorizationRequest request, AuthorizationModel model)
+    protected override bool Match(AccountAuthorizationRequest request, AuthorizationModel model)
     {
-        if (model.HasGL2Permission(request.UserId, request.GL2, request.PermissionId, request.OrganizationContext))
-            yield return PolicyEffect.Allow;
+        return model.HasGL2Permission(
+            userId: request.UserId,
+            gl2: request.GL2,
+            permissionId: request.PermissionId, 
+            organizationContext: request.OrganizationContext);
     }
 }

@@ -9,10 +9,10 @@ public abstract class Matcher<TRequest, TModel> : IMatcher<TRequest>
         _modelFactory = modelFactory;
     }
 
-    public IEnumerable<PolicyEffect> Match(TRequest request)
+    public bool Match(TRequest request)
     {
         return Match(request, _modelFactory.PrepareModel());
     }
 
-    protected abstract IEnumerable<PolicyEffect> Match(TRequest request, TModel model);
+    protected abstract bool Match(TRequest request, TModel model);
 }
