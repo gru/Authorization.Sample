@@ -1,7 +1,14 @@
+using Authorization.Sample.Entities;
+
 namespace Authorization.Sample.Implementation;
 
 public static class OrganizationContextEx
 {
+    public static string ToUserString(this long userId)
+    {
+        return ((BankUserId)userId).ToString();
+    }
+    
     public static string ToCasbinString(this OrganizationContext organizationContext)
     {
         return ToCasbinString(

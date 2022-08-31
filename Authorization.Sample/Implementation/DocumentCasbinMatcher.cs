@@ -8,7 +8,7 @@ public class DocumentCasbinMatcher : Matcher<DocumentAuthorizationRequest, IEnfo
     {
     }
 
-    protected override IEnumerable<PolicyEffect> Match(DocumentAuthorizationRequest request, IEnforcer enforcer)
+    protected override bool Match(DocumentAuthorizationRequest request, IEnforcer enforcer)
     {
         var sub = request.UserId.ToString();
         var obj = request.DocumentTypeId.ToString();
@@ -18,7 +18,6 @@ public class DocumentCasbinMatcher : Matcher<DocumentAuthorizationRequest, IEnfo
         var enforceContext = EnforceContext
             .Create(enforcer, policyType: "p2", matcherType: "m2");
 
-        if (enforcer.Enforce(enforceContext, sub, obj, act, ctx))
-            yield return PolicyEffect.Allow;
+        return enforcer.Enforce(enforceContext, sub, obj, act, ctx);
     }
 }

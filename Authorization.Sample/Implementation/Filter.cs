@@ -14,5 +14,5 @@ public abstract class Filter<T, TContext, TModel> : IFilter<T, TContext>
         return Apply(query, request, _modelFactory.PrepareModel());
     }
 
-    protected abstract IQueryable<T> Apply(IQueryable<T> query, TContext request, TModel model);
+    protected abstract IQueryable<T> Apply(IQueryable<T> query, TContext request, TModel enforcer);
 }

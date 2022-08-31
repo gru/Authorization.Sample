@@ -9,14 +9,13 @@ public class ResourceCasbinMatcher : Matcher<ResourceAuthorizationRequest, IEnfo
     {
     }
 
-    protected override IEnumerable<PolicyEffect> Match(ResourceAuthorizationRequest request, IEnforcer enforcer)
+    protected override bool Match(ResourceAuthorizationRequest request, IEnforcer enforcer)
     {
-        var sub = request.UserId.ToString();
+        var sub = request.UserId.ToUserString();
         var obj = request.SecurableId.ToString();
         var act = request.PermissionId.ToString();
         var ctx = request.OrganizationContext.ToCasbinString();
 
-        if (enforcer.Enforce(sub, obj, act, ctx))
-            yield return PolicyEffect.Allow;
+        return enforcer.Enforce(sub, obj, act, ctx);
     }
 }

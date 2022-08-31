@@ -1,18 +1,24 @@
 using Authorization.Sample.Entities;
+using Casbin;
 
 namespace Authorization.Sample.Implementation;
 
-public class DocumentationFileCategoryFilter : Filter<DocumentationFileCategory, DefaultFilterRequest, AuthorizationModel>
+public class DocumentationFileCategoryFilter : Filter<DocumentationFileCategory, DefaultFilterRequest, IEnforcer>
 {
-    public DocumentationFileCategoryFilter(IAuthorizationModelFactory<AuthorizationModel> modelFactory) 
+    public DocumentationFileCategoryFilter(IAuthorizationModelFactory<IEnforcer> modelFactory) 
         : base(modelFactory)
     {
     }
 
-    protected override IQueryable<DocumentationFileCategory> Apply(IQueryable<DocumentationFileCategory> query, DefaultFilterRequest request, AuthorizationModel model)
+    protected override IQueryable<DocumentationFileCategory> Apply(IQueryable<DocumentationFileCategory> query, DefaultFilterRequest request, IEnforcer enforcer)
     {
+        var sub = request.UserId.ToString();
+        const string obj = "*";
+        const string act = "*";
+        var ctx = request.OrganizationContext.ToCasbinString();
+
         // для супервизора фильтр не применяем
-        if (model.HasPermission(request.UserId, SecurableId.Any, PermissionId.Any, request.OrganizationContext))
+        if (enforcer.Enforce(sub, obj, act, ctx))
             return query;
         
         // для клиетских пользователей возвращать DocumentationFileCategoryType.All, DocumentationFileCategoryType.Client 

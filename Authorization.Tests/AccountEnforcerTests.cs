@@ -2,6 +2,7 @@ using System;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
 using Authorization.Sample.Services;
+using Casbin;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -38,9 +39,9 @@ public class AccountEnforcerTests
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<IDemoService>(new DemoService(demo));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
-        serviceCollection.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, AuthorizationModelFactory>();
-        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceMatcher>();
-        serviceCollection.AddSingleton<IMatcher<AccountAuthorizationRequest>, AccountMatcher>();
+        serviceCollection.AddSingleton<IAuthorizationModelFactory<IEnforcer>, CasbinAuthorizationModelFactory>();
+        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceCasbinMatcher>();
+        serviceCollection.AddSingleton<IMatcher<AccountAuthorizationRequest>, AccountCasbinMatcher>();
         serviceCollection.AddSingleton<AuthorizationEnforcer>();
 
         return serviceCollection.BuildServiceProvider().GetService<AuthorizationEnforcer>();

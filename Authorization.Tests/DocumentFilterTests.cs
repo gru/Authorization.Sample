@@ -3,6 +3,7 @@ using System.Linq;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
 using Authorization.Sample.Services;
+using Casbin;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -115,10 +116,10 @@ public class DocumentFilterTests
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IDemoService>(new DemoService(false));
-        serviceCollection.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, AuthorizationModelFactory>();
-        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceMatcher>();
-        serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
-        serviceCollection.AddSingleton<IFilter<Document, DefaultFilterRequest>, DocumentFilter>();
+        serviceCollection.AddSingleton<IAuthorizationModelFactory<IEnforcer>, CasbinAuthorizationModelFactory>();
+        serviceCollection.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceCasbinMatcher>();
+        serviceCollection.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentCasbinMatcher>();
+        serviceCollection.AddSingleton<IFilter<Document, DefaultFilterRequest>, DocumentCasbinFilter>();
         serviceCollection.AddSingleton<AuthorizationEnforcer>();
 
         var enforcer = serviceCollection.BuildServiceProvider().GetService<AuthorizationEnforcer>(); 

@@ -17,10 +17,9 @@ builder.Services.AddSingleton<IAuthorizationModelFactory<IEnforcer>, CasbinAutho
 builder.Services.AddSingleton<IDemoService>(new DemoService(false));
 builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<ICurrentDateService>(new CurrentDateService());
-builder.Services.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, AuthorizationModelFactory>();
-builder.Services.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceMatcher>();
-builder.Services.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
-builder.Services.AddSingleton<IMatcher<AccountAuthorizationRequest>, AccountMatcher>();
+builder.Services.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceCasbinMatcher>();
+builder.Services.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentCasbinMatcher>();
+builder.Services.AddSingleton<IMatcher<AccountAuthorizationRequest>, AccountCasbinMatcher>();
 builder.Services.AddSingleton<IFilter<Document, DefaultFilterRequest>, DocumentCasbinFilter>();
 builder.Services.AddSingleton<IFilter<DocumentationFileCategory, DefaultFilterRequest>, DocumentationFileCategoryFilter>();
 builder.Services.AddSingleton<AuthorizationEnforcer>();
