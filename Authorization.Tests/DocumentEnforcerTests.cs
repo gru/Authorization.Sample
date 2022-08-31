@@ -185,6 +185,7 @@ public class DocumentEnforcerTests
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddInMemoryDataContext();
+        serviceCollection.AddSingleton(new CasbinAuthorizationModelOptions());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<IDemoService>(new DemoService(demo));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));

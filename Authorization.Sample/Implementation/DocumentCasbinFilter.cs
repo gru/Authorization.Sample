@@ -12,7 +12,7 @@ public class DocumentCasbinFilter : Filter<Document, DefaultFilterRequest, IEnfo
 
     protected override IQueryable<Document> Apply(IQueryable<Document> query, DefaultFilterRequest request, IEnforcer enforcer)
     {
-        var sub = request.UserId.ToString();
+        var sub = request.UserId.ToUserString();
         var act = request.PermissionId.ToString();
         var ctx = request.OrganizationContext.ToCasbinString();
 

@@ -23,11 +23,8 @@ public class CasbinAuthorizationModelFactory : IAuthorizationModelFactory<IEnfor
     {
         var enforcer = new Enforcer(_options.ModelPath, _options.PolicyPath);
 
-        var roleManager = new DefaultRoleManager(0)
-        {
-            DomainMatchingFunc = (arg1, arg2) => arg1 == arg2
-        };
-        
+        var roleManager = new DefaultRoleManager(0);
+        roleManager.AddDomainMatchingFunc((arg1, arg2) => arg1 == arg2);
         enforcer.Model.SetRoleManager("g", roleManager);
         
         var bankUserRoles = _context.BankUserRoles
@@ -46,15 +43,15 @@ public class CasbinAuthorizationModelFactory : IAuthorizationModelFactory<IEnfor
         }
 
         enforcer.Model.BuildRoleLinks();
-
-        roleManager.DomainMatchingFunc = DomainMatchingFunction2;
+        roleManager.AddDomainMatchingFunc(DomainMatchingFunction);
 
         return enforcer;
     }
 
-    private bool DomainMatchingFunction2(string arg1, string arg2)
+    private static bool DomainMatchingFunction(string arg1, string arg2)
     {
-        if (arg1 == arg2) return true;
+        if (arg1 == arg2) 
+            return true;
         
         if (arg1 == string.Empty || arg2 == string.Empty)
             return arg1 == arg2;

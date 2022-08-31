@@ -15,7 +15,8 @@ public class ResourceCasbinMatcher : Matcher<ResourceAuthorizationRequest, IEnfo
         var obj = request.SecurableId.ToString();
         var act = request.PermissionId.ToString();
         var ctx = request.OrganizationContext.ToCasbinString();
-
-        return enforcer.Enforce(sub, obj, act, ctx);
+        const string res = "Resource";
+        
+        return enforcer.Enforce(sub, res, obj, act, ctx);
     }
 }

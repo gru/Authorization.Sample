@@ -1,5 +1,4 @@
-p, BankUser, DocumentationFile, View
-p, Supervisor, *, *
-
-p2, BankUser, Account, View
-p2, BankUser, Account, Change
+p, Supervisor, *, *, * 
+p, BankUser, Resource, DocumentationFile, View 
+p, BankUser, DocumentType, Account, View
+p, BankUser, DocumentType, Account, Change 
