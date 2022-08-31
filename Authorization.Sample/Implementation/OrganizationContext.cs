@@ -2,6 +2,10 @@ namespace Authorization.Sample.Implementation;
 
 public class OrganizationContext
 {
+    private OrganizationContext()
+    {
+    }
+    
     public OrganizationContext(long branchId)
     {
         BranchId = branchId;
@@ -32,4 +36,6 @@ public class OrganizationContext
     public long? RegionalOfficeId { get; }
     
     public long? OfficeId { get; }
+
+    public static readonly OrganizationContext Empty = new OrganizationContext();
 }

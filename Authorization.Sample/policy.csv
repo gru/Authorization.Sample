@@ -1,4 +1,5 @@
-p, Supervisor, *, *, * 
-p, BankUser, Resource, DocumentationFile, View 
-p, BankUser, DocumentType, Account, View
-p, BankUser, DocumentType, Account, Change 
+p, Supervisor,  *           , *                 , * 
+p, BankUser,    Resource    , DocumentationFile , View 
+p, BankUser,    DocumentType, Account           , View
+p, BankUser,    DocumentType, Account           , Change 
+p, BankUser,    GL2Group    , 1                 , View

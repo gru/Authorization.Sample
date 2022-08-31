@@ -15,22 +15,34 @@ public class DocumentCasbinFilter : Filter<Document, DefaultFilterRequest, IEnfo
         var sub = request.UserId.ToUserString();
         var act = request.PermissionId.ToString();
         var ctx = request.OrganizationContext.ToCasbinString();
+        const string res = "DocumentType";
 
-        const string documentTypeSection = "p2";
+        if (enforcer.Enforce(sub, "*", "*", "*", OrganizationContext.Empty.ToCasbinString()))
+            return query;
+        
+        if (request.OrganizationContext != null)
+        {
+            query = query
+                .Where(d => (d.BranchId == request.OrganizationContext.BranchId) &&
+                            (d.OfficeId == request.OrganizationContext.OfficeId || request.OrganizationContext.OfficeId == null));
+        }
         
         var documentTypeAssertion = enforcer.PolicyManager
-            .Sections[PermConstants.DefaultPolicyType][documentTypeSection];
+            .Sections[PermConstants.DefaultPolicyType][PermConstants.DefaultPolicyType];
         
         var subIndex = documentTypeAssertion.Tokens["sub"];
         var actIndex = documentTypeAssertion.Tokens["act"];
-        var typeIndex = documentTypeAssertion.Tokens["type"];
+        var objIndex = documentTypeAssertion.Tokens["obj"];
+        var resIndex = documentTypeAssertion.Tokens["res"];
         
-        var roles = enforcer.GetImplicitRolesForUser(sub, ctx);
+        var roles = enforcer.GetRolesForUser(sub, ctx).ToArray();
+        if (roles.Length == 0) return query.Where(d => false);
+        
         var allowedDocumentTypes = enforcer
-            .GetFilteredNamedPolicy(documentTypeSection, subIndex, roles.ToArray())
-            .Where(p => p.ElementAt(actIndex) == act)
-            .Select(p => Enum.Parse<DocumentTypeId>(p.ElementAt(typeIndex)));
-        
+            .GetFilteredNamedPolicy(PermConstants.DefaultPolicyType, subIndex, roles.ToArray())
+            .Where(p => p.ElementAt(actIndex) == act && p.ElementAt(resIndex) == res)
+            .Select(p => Enum.Parse<DocumentTypeId>(p.ElementAt(objIndex)));
+    
         query = query.Where(d => allowedDocumentTypes.Contains(d.DocumentTypeId));
 
         return query;

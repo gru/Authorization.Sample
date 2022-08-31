@@ -18,18 +18,16 @@ public class AccountCasbinMatcher : Matcher<AccountAuthorizationRequest, IEnforc
 
     protected override bool Match(AccountAuthorizationRequest request, IEnforcer enforcer)
     {
-        var sub = request.UserId.ToString();
+        var sub = request.UserId.ToUserString();
         var act = request.PermissionId.ToString();
         var ctx = request.OrganizationContext.ToCasbinString();
-
-        var enforceContext = EnforceContext
-            .Create(enforcer, policyType: "p3", matcherType: "m3");
+        const string res = "GL2Group";
         
         foreach (var gl2GroupId in _gl2Lookup.Value[request.GL2])
         {
             var obj = gl2GroupId.ToString();
             
-            if (enforcer.Enforce(enforceContext, sub, obj, act, ctx))
+            if (enforcer.Enforce(sub, res, obj, act, ctx))
                 return true;
         }
         

@@ -68,7 +68,7 @@ public class DocumentFilterTests
     {
         var (enforcer, context) = CreateEnforcer(BankUserId.OfficeUser);
         
-        var rootDocuments = enforcer.EnforceFilter(context.Documents, new DefaultFilterRequest()).ToArray();
+        var rootDocuments = enforcer.EnforceFilter(context.Documents).ToArray();
         
         Assert.Empty(rootDocuments);
 
@@ -113,6 +113,7 @@ public class DocumentFilterTests
         var serviceCollection = new ServiceCollection();
         var dataContext = ServiceCollectionEx.GetInMemoryDataContext();
         serviceCollection.AddInMemoryDataContext(dataContext);
+        serviceCollection.AddSingleton(new CasbinAuthorizationModelOptions());
         serviceCollection.AddSingleton<ICurrentUserService>(new TestCurrentUserService(currentUser));
         serviceCollection.AddSingleton<ICurrentDateService>(new TestCurrentDateService(DateTimeOffset.Now));
         serviceCollection.AddSingleton<IDemoService>(new DemoService(false));
