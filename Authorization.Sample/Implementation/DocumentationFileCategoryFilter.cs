@@ -12,7 +12,7 @@ public class DocumentationFileCategoryFilter : Filter<DocumentationFileCategory,
     protected override IQueryable<DocumentationFileCategory> Apply(IQueryable<DocumentationFileCategory> query, DefaultFilterRequest request, AuthorizationModel model)
     {
         // для супервизора фильтр не применяем
-        if (model.InResourceRole(request.UserId, SecurableId.Any, PermissionId.Any, request.OrganizationContext))
+        if (model.HasPermission(request.UserId, SecurableId.Any, PermissionId.Any, request.OrganizationContext))
             return query;
         
         // для клиетских пользователей возвращать DocumentationFileCategoryType.All, DocumentationFileCategoryType.Client 

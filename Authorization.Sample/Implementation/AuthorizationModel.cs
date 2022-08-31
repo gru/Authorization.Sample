@@ -27,7 +27,7 @@ public class AuthorizationModel
                 .ToHashSet());
     }
 
-    public bool InResourceRole(long userId, SecurableId securableId, PermissionId permissionId, OrganizationContext organizationContext)
+    public bool HasPermission(long userId, SecurableId securableId, PermissionId permissionId, OrganizationContext organizationContext)
     {
         if (IsRequestedPermissionNotAllowed(permissionId))
             return false;
@@ -47,8 +47,8 @@ public class AuthorizationModel
         
         return query.Any();
     }
-    
-    public bool InDocumentTypeRole(long userId, DocumentTypeId documentTypeId, PermissionId permissionId, OrganizationContext organizationContext)
+
+    public bool HasPermission(long userId, SecurableId securableId, ResourceTypeId resourceTypeId, long resourceId, PermissionId permissionId, OrganizationContext organizationContext)
     {
         if (IsRequestedPermissionNotAllowed(permissionId))
             return false;
@@ -57,19 +57,58 @@ public class AuthorizationModel
         
         var id = (BankUserId) userId;
         
-        var documentRoles = 
+        var query = 
             from bankUserRole in userRoles
             join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
-            where bankUserRole.BankUserId == id && 
-                  (rolePermission.ResourceId == (long) documentTypeId ||
+            where bankUserRole.BankUserId == id &&
+                  rolePermission.SecurableId == securableId &&
+                  rolePermission.ResourceTypeId == resourceTypeId &&
+                  (rolePermission.ResourceId == resourceId ||
                    rolePermission.ResourceId == null) &&
                   (rolePermission.PermissionId == permissionId ||
                    rolePermission.PermissionId == PermissionId.Any)
             select 1;
-        
-        return documentRoles.Any();
+
+        return query.Any();
     }
-    
+
+    public bool HasPermission(long userId, SecurableId securableId, PermissionId permissionId, ResourceTypeId resourceTypeId, IEnumerable<long> resourceIds, OrganizationContext organizationContext)
+    {
+        if (IsRequestedPermissionNotAllowed(permissionId))
+            return false;
+        
+        var userRoles = ApplyUserBankRoleFilters(_context.BankUserRoles, organizationContext);
+        
+        var id = (BankUserId) userId;
+        
+        var query = 
+            from bankUserRole in userRoles
+            join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
+            where bankUserRole.BankUserId == id &&
+                  rolePermission.SecurableId == securableId &&
+                  rolePermission.ResourceTypeId == resourceTypeId &&
+                  (resourceIds.Contains(rolePermission.ResourceId.Value) ||
+                   rolePermission.ResourceId == null) &&
+                  (rolePermission.PermissionId == permissionId ||
+                   rolePermission.PermissionId == PermissionId.Any)
+            select 1;
+
+        return query.Any();
+    }
+
+    public bool HasGL2Permission(long userId, string gl2, PermissionId permissionId, OrganizationContext organizationContext)
+    {
+        var groups = _gl2Lookup.Value[gl2];
+        
+        return HasPermission(
+            userId: userId,
+            securableId: SecurableId.Account, 
+            permissionId: permissionId,
+            resourceTypeId: ResourceTypeId.GL2Group,
+            resourceIds: groups,
+            organizationContext: organizationContext);
+    }
+
     public IEnumerable<DocumentTypeId> UserAllowedDocumentTypes(long userId, PermissionId permissionId, OrganizationContext organizationContext)
     {
         var bankRoleFilters = ApplyUserBankRoleFilters(_context.BankUserRoles, organizationContext);
@@ -85,42 +124,13 @@ public class AuthorizationModel
                   rolePermission.ResourceTypeId == ResourceTypeId.DocumentType
             select rolePermission.ResourceId;
 
-        var documentTypeIds = query.Any(t => t == null) 
-            ? _context.DocumentTypes.Select(dt => dt.Id).ToArray()
-            : query.Select(t => (DocumentTypeId) t).ToArray();
-        
-        return documentTypeIds;
+        var allDocumentTypes =
+            from documentType in _context.DocumentTypes
+            select documentType.Id;
+
+        return ExpandIfResourceIdsContainsNull(query.ToArray(), allDocumentTypes);
     }
     
-    public bool InGL2GroupRole(long userId, string gl2, PermissionId permissionId, OrganizationContext organizationContext)
-    {
-        if (IsRequestedPermissionNotAllowed(permissionId))
-            return false;
-        
-        var userRoles = ApplyUserBankRoleFilters(_context.BankUserRoles, organizationContext);
-        
-        var id = (BankUserId) userId;
-        var groups = _gl2Lookup.Value[gl2];
-
-        var query = 
-            from bankUserRole in userRoles
-            join rolePermission in _context.RolePermissions on bankUserRole.RoleId equals rolePermission.RoleId
-            where bankUserRole.BankUserId == id &&
-                  rolePermission.ResourceTypeId == ResourceTypeId.GL2Group &&
-                  (groups.Contains(rolePermission.ResourceId.Value) ||
-                   rolePermission.ResourceId == null) &&
-                  (rolePermission.PermissionId == permissionId ||
-                   rolePermission.PermissionId == PermissionId.Any)
-            select new PolicyRule
-            {
-                UserId = (long)bankUserRole.BankUserId,
-                PermissionId = rolePermission.PermissionId,
-                RoleId = rolePermission.RoleId
-            };
-        
-        return query.Any();
-    }
-
     private IQueryable<BankUserRole> ApplyUserBankRoleFilters(IQueryable<BankUserRole> query, OrganizationContext ctx)
     {
         if (ctx == null)
@@ -147,5 +157,12 @@ public class AuthorizationModel
     private bool IsRequestedPermissionNotAllowed(PermissionId permissionId)
     {
         return _options.AllowReadPermissionsOnly && !_readOnlyPermissions.Value.Contains(permissionId);
+    }
+
+    private static IEnumerable<T> ExpandIfResourceIdsContainsNull<T>(IReadOnlyCollection<long?> resourceIds, IQueryable<T> query)
+    {
+        return resourceIds.Any(id => id == null)
+            ? query.AsEnumerable()
+            : resourceIds.Select(id => id).Cast<T>();
     }
 }
