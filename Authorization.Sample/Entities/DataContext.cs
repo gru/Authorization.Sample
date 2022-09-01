@@ -21,8 +21,6 @@ public class DataContext : DataConnection
     
     public ITable<Securable> Securables => this.GetTable<Securable>();
     
-    public ITable<RolePermission> RolePermissions => this.GetTable<RolePermission>();
-    
     public ITable<Document> Documents => this.GetTable<Document>();
     
     public ITable<DocumentType> DocumentTypes => this.GetTable<DocumentType>();
@@ -44,7 +42,6 @@ public class DataContext : DataConnection
         this.CreateTable<DocumentType>();
         this.CreateTable<Document>();
         this.CreateTable<BankUserRole>();
-        this.CreateTable<RolePermission>();
         this.CreateTable<Account>();
         this.CreateTable<GL2Group>();
         this.CreateTable<DocumentationFileCategory>();
@@ -84,13 +81,7 @@ public class DataContext : DataConnection
         Securables.Insert(() => new Securable { Id = SecurableId.Account, Name = nameof(SecurableId.Account) });
         Securables.Insert(() => new Securable { Id = SecurableId.DocumentationFile, Name = nameof(SecurableId.DocumentationFile) });
         Securables.Insert(() => new Securable { Id = SecurableId.Any, Name = nameof(SecurableId.Any) });
-
-        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.Supervisor, PermissionId = PermissionId.Any, SecurableId = SecurableId.Any });
-        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.DocumentationFile });
-        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Account, ResourceTypeId = ResourceTypeId.GL2Group, ResourceId = GL2GroupIds.Bank });
-        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Document, ResourceTypeId = ResourceTypeId.DocumentType, ResourceId = (long) DocumentTypeId.Account });
-        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.Change, SecurableId = SecurableId.Document, ResourceTypeId = ResourceTypeId.DocumentType, ResourceId = (long) DocumentTypeId.Account });
-        
+    
         Documents.Insert(() => new Document { Id = 1, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Account });
         Documents.Insert(() => new Document { Id = 2, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Account });
         Documents.Insert(() => new Document { Id = 3, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Guarantee });

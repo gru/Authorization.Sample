@@ -24,7 +24,7 @@ public class CasbinAuthorizationModelFactory : IAuthorizationModelFactory<IEnfor
     public IEnforcer PrepareModel()
     {
         var enforcer = new Enforcer(_options.ModelPath, _options.PolicyPath);
-        enforcer.AddFunction("ro", IsReadOnlyPermission);
+        enforcer.AddFunction("act_allowed", IsReadOnlyPermission);
         
         var roleManager = new DefaultRoleManager(0);
         roleManager.AddDomainMatchingFunc((arg1, arg2) => arg1 == arg2);
@@ -46,6 +46,7 @@ public class CasbinAuthorizationModelFactory : IAuthorizationModelFactory<IEnfor
         }
 
         enforcer.Model.BuildRoleLinks();
+        
         roleManager.AddDomainMatchingFunc(DomainMatchingFunction);
 
         return enforcer;
