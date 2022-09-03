@@ -1,8 +1,10 @@
+using Authorization.Permissions;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
 using Authorization.Sample.Services;
 using Microsoft.AspNetCore.Mvc;
 using LinqToDB;
+using Microsoft.AspNetCore.Authorization;
 using DataContext = Authorization.Sample.Entities.DataContext;
 
 namespace Authorization.Sample.Controllers;
@@ -21,7 +23,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpGet]
-    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.View)]
+    [Authorize(Securables.DocumentationFileView)]
     public IEnumerable<DocumentationFileCategory> Get()
     {
         var query = _enforcer
@@ -31,7 +33,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.View)]
+    [Authorize(Securables.DocumentationFileView)]
     public DocumentationFileCategory Get(long id)
     {
         var query = _enforcer
@@ -41,7 +43,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpPut]
-    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.Create)]
+    [Authorize(Securables.DocumentationFileCreate)]
     public long Put(DocumentationFileCategory category)
     {
         return _context.DocumentationFileCategories
@@ -53,7 +55,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpPost]
-    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.Change)]
+    [Authorize(Securables.DocumentationFileChange)]
     public void Post(DocumentationFileCategory category)
     {
         _context.DocumentationFileCategories
@@ -64,7 +66,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpDelete]
-    [SecurablePermission(SecurableId.DocumentationFile, PermissionId.Delete)]
+    [Authorize(Securables.DocumentationFileDelete)]
     public void Delete(long id)
     {
         var document = _context.DocumentationFileCategories.SingleOrDefault(d => d.Id == id);

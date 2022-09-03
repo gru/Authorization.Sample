@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Authorization.Permissions;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
 using Authorization.Sample.Services;
@@ -45,12 +46,28 @@ builder.Services.AddHttpClient<IOpaClient, OpaHttpClient>()
         
         client.BaseAddress = new Uri(url);
     });
+
 builder.Services.AddAuthorization(options =>
 {
-    options.AddResourcePolicy(SecurableId.DocumentationFile, PermissionId.View, b =>
+    var securables = new[]
     {
-        b.AddResourceRequirement(SecurableId.DocumentationFile, PermissionId.View);
-    });
+        Securables.DocumentationFileView,
+        Securables.DocumentationFileCreate,
+        Securables.DocumentationFileChange,
+        Securables.DocumentationFileDelete
+    };
+
+    foreach (var securable in securables)
+    {
+        var split = securable.Split('.');
+        var securableId = Enum.Parse<SecurableId>(split[0]);
+        var permissionId = Enum.Parse<PermissionId>(split[1]);
+        
+        options.AddPolicy(Securables.DocumentationFileView, b =>
+        {
+            b.AddOpaResourceRequirement("sample.resource", securableId, permissionId);
+        });
+    }
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -66,11 +83,12 @@ app.Services
     .GetRequiredService<IOpaDataManager>()
     .PushRoles()
     .PushUserRoles()
-    .PushReadOnlyPermissions();
+    .PushReadOnlyPermissions()
+    .PushDemoFlag();
 
 app.Services
     .GetRequiredService<IOpaManager>()
-    .PushPolicyFile("rbac", "rbac.rego");
+    .PushPolicyFile("rbac", "resource.rego");
 
 if (app.Environment.IsDevelopment())
 {

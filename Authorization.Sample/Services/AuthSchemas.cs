@@ -6,6 +6,7 @@ using Authorization.Sample.Entities;
 using Microsoft.AspNetCore.Authorization;
 using OPADotNet.Ast;
 using OPADotNet.Core.Models;
+using static Authorization.Sample.Services.OrgContextHelpers;
 
 namespace Authorization.Sample.Services;
 
@@ -14,20 +15,11 @@ public class AuthSchemas
     public const string RequestQueryScheme = "RequestQuery";
 }
 
-public static class AuthorizationOptionsEx
-{
-    public static AuthorizationOptions AddResourcePolicy(this AuthorizationOptions options, SecurableId securableId, PermissionId permissionId, Action<AuthorizationPolicyBuilder> action)
-    {
-        options.AddPolicy($"{securableId}.{permissionId}", action);
-        return options;
-    }
-}
-
 public static class AuthorizationPolicyBuilderEx
 {
-    public static AuthorizationPolicyBuilder AddResourceRequirement(this AuthorizationPolicyBuilder builder, SecurableId resource, PermissionId operation)
+    public static AuthorizationPolicyBuilder AddOpaResourceRequirement(this AuthorizationPolicyBuilder builder, string name, SecurableId securableId, PermissionId permissionId)
     {
-        return builder.AddRequirements(new OpaRequirement("resource", resource.ToString(), operation.ToString()));
+        return builder.AddRequirements(new OpaRequirement(name, securableId.ToString(), permissionId.ToString()));
     }
     
     public static AuthorizationPolicyBuilder AddOpaRequirement(this AuthorizationPolicyBuilder builder, string name, string resource = "", string operation = "")
@@ -66,10 +58,12 @@ public class OpaRequirement : IAuthorizationRequirement
 public class OpaAuthorizationHandler : AuthorizationHandler<OpaRequirement>
 {
     private readonly IOpaClient _opaClient;
+    private readonly IHttpContextAccessor _contextAccessor;
 
-    public OpaAuthorizationHandler(IOpaClient opaClient)
+    public OpaAuthorizationHandler(IOpaClient opaClient, IHttpContextAccessor contextAccessor)
     {
         _opaClient = opaClient;
+        _contextAccessor = contextAccessor;
     }
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, OpaRequirement requirement)
@@ -80,12 +74,56 @@ public class OpaAuthorizationHandler : AuthorizationHandler<OpaRequirement>
         var input = new OpaInput
         {
             Subject = subject,
-            Operation = requirement.Operation
+            Action = requirement.Operation,
+            Object = requirement.Resource,
+            Extensions =
+            {
+                ["orgContext"] = GetOrganizationContext()
+            }
         };
 
         var compile = await _opaClient.Compile(query, input, unknowns);
         if (compile.Result.Queries != null)
             context.Succeed(requirement);
+    }
+
+    private string GetOrganizationContext()
+    {
+        var query = _contextAccessor.HttpContext?.Request.Query;
+        if (query != null)
+        {
+            if (query.TryGetValue("branchId", out var branchIdString) && 
+                long.TryParse(branchIdString, out var branchId))
+            {
+                long? regionalOfficeId = 
+                    query.TryGetValue("regionalOfficeId", out var regionalOfficeIdString) && long.TryParse(regionalOfficeIdString, out var regionalOfficeIdValue)
+                        ? regionalOfficeIdValue
+                        : null;
+
+                long? officeId = 
+                    query.TryGetValue("regionalOfficeId", out var officeIdString) && long.TryParse(officeIdString, out var officeIdValue)
+                        ? officeIdValue
+                        : null;
+
+                var data = JsonSerializer.Serialize(new
+                {
+                    branch = ToOrgContextValue(branchId), 
+                    regOffice = ToOrgContextValue(regionalOfficeId), 
+                    office = ToOrgContextValue(officeId)
+                });
+
+                return data;
+            }
+        }
+        
+        var defaultOrgContext = JsonSerializer.Serialize(new
+        {
+            branch = ToOrgContextValue(null), 
+            regOffice = ToOrgContextValue(null), 
+            office = ToOrgContextValue(null)
+        });
+
+        return defaultOrgContext;
     }
 }
 
@@ -150,8 +188,11 @@ internal class OpaInput
     [JsonPropertyName("subject")]
     public OpaInputUser Subject { get; set; }
 
-    [JsonPropertyName("operation")]
-    public string Operation { get; set; }
+    [JsonPropertyName("action")]
+    public string Action { get; set; }
+    
+    [JsonPropertyName("object")]
+    public object Object { get; set; }
 
     [JsonExtensionData]
     public Dictionary<string, object> Extensions { get; set; }
@@ -165,7 +206,7 @@ internal class OpaInputUser
     [JsonPropertyName("claims")]
     public Dictionary<string, List<string>> Claims { get; set; }
 
-    [JsonPropertyName("isAuthenticated")]
+    [JsonPropertyName("authenticated")]
     public bool IsAuthenticated { get; set; }
 
     public static OpaInputUser FromPrincipal(ClaimsPrincipal claimsPrincipal)
@@ -230,18 +271,26 @@ public interface IOpaDataManager
     IOpaDataManager PushUserRoles();
 
     IOpaDataManager PushReadOnlyPermissions();
+
+    IOpaDataManager PushDemoFlag();
 }
 
 public class OpaDataManager : IOpaDataManager
 {
     private readonly DataContext _context;
     private readonly ICurrentDateService _dateService;
+    private readonly IDemoService _demoService;
     private readonly IOpaClient _opaClient;
 
-    public OpaDataManager(DataContext context, ICurrentDateService dateService, IOpaClient opaClient)
+    public OpaDataManager(
+        DataContext context, 
+        ICurrentDateService dateService,
+        IDemoService demoService,
+        IOpaClient opaClient)
     {
         _context = context;
         _dateService = dateService;
+        _demoService = demoService;
         _opaClient = opaClient;
     }
     
@@ -276,8 +325,7 @@ public class OpaDataManager : IOpaDataManager
 
     public IOpaDataManager PushUserRoles()
     {
-        static string ToOrgContextValue(long? value) => 
-            value.HasValue ? value.ToString() : "*";
+       
 
         var userRoles = _context.BankUserRoles
             .Where(ur => ur.EndDate == null || ur.EndDate > _dateService.UtcNow)
@@ -319,4 +367,20 @@ public class OpaDataManager : IOpaDataManager
 
         return this;
     }
+
+    public IOpaDataManager PushDemoFlag()
+    {
+        var demoFlag = JsonSerializer.Serialize(_demoService.IsDemoModeActive);
+        
+        _opaClient.DeleteData(nameof(demoFlag));
+        _opaClient.CreateData(nameof(demoFlag), demoFlag);
+
+        return this;
+    }
+}
+
+public static class OrgContextHelpers
+{
+    public static string ToOrgContextValue(long? value) => 
+        value.HasValue ? value.ToString() : "*";
 }
