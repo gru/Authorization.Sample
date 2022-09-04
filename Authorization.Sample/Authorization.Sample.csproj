@@ -16,4 +16,10 @@
       <ProjectReference Include="..\Authorization.Permissions\Authorization.Permissions.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Update="data.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>

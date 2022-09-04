@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Authorization.Sample.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -48,6 +49,11 @@ public class OpaRequirement : IAuthorizationRequirement
         return $"data.{Name}.allow == true";
     }
 
+    public string GetPolicy()
+    {
+        return $"{Name.Replace('.', '/')}/allow" ;
+    }
+    
     public IEnumerable<string> GetUnknowns()
     {
         if (Resource != null)
@@ -68,26 +74,30 @@ public class OpaAuthorizationHandler : AuthorizationHandler<OpaRequirement>
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, OpaRequirement requirement)
     {
-        var query = requirement.GetQuery();
-        var unknowns = requirement.GetUnknowns();
+        var policy = requirement.GetPolicy();
         var subject = OpaInputUser.FromPrincipal(context.User);
+        var (branch, regOffice, office) = GetOrganizationContext();
         var input = new OpaInput
         {
             Subject = subject,
             Action = requirement.Operation,
             Object = requirement.Resource,
-            Extensions =
+            Extensions = new Dictionary<string, object>
             {
-                ["orgContext"] = GetOrganizationContext()
+                ["orgContext"] = new
+                {
+                    branch = ToOrgContextValue(branch),
+                    regOffice = ToOrgContextValue(regOffice),
+                    office = ToOrgContextValue(office),
+                }
             }
         };
 
-        var compile = await _opaClient.Compile(query, input, unknowns);
-        if (compile.Result.Queries != null)
-            context.Succeed(requirement);
+        var result = await _opaClient.Evaluate(policy, input);
+        if (result) context.Succeed(requirement);
     }
 
-    private string GetOrganizationContext()
+    private (long?, long?, long?) GetOrganizationContext()
     {
         var query = _contextAccessor.HttpContext?.Request.Query;
         if (query != null)
@@ -105,31 +115,19 @@ public class OpaAuthorizationHandler : AuthorizationHandler<OpaRequirement>
                         ? officeIdValue
                         : null;
 
-                var data = JsonSerializer.Serialize(new
-                {
-                    branch = ToOrgContextValue(branchId), 
-                    regOffice = ToOrgContextValue(regionalOfficeId), 
-                    office = ToOrgContextValue(officeId)
-                });
-
-                return data;
+                return (branchId, regionalOfficeId, officeId);
             }
         }
-        
-        var defaultOrgContext = JsonSerializer.Serialize(new
-        {
-            branch = ToOrgContextValue(null), 
-            regOffice = ToOrgContextValue(null), 
-            office = ToOrgContextValue(null)
-        });
 
-        return defaultOrgContext;
+        return (null, null, null);
     }
 }
 
 public interface IOpaClient
 {
     Task<PartialResult> Compile(string query, object input, IEnumerable<string> unknowns);
+    
+    Task<bool> Evaluate(string policy, object input);
 
     Task CreateOrUpdatePolicy(string name, string query);
 
@@ -149,22 +147,42 @@ public class OpaHttpClient : IOpaClient
     
     public async Task<PartialResult> Compile(string query, object input, IEnumerable<string> unknowns)
     {
-        var result = await _httpClient.PostAsJsonAsync("/v1/compile", new
+        var data = JsonSerializer.Serialize(new
         {
             Input = input,
             Query = query,
             Unknowns = unknowns
         });
+        
+        var message = (await _httpClient.PostAsync("/v1/compile", new StringContent(data, Encoding.UTF8, "application/json")))
+            .EnsureSuccessStatusCode();
+        
+        var content = await message.Content.ReadAsStringAsync();
+        var result = PartialJsonConverter.ReadPartialResult(content);
+        
+        return result;
+    }
 
-        var content = await result.Content.ReadAsStringAsync();
-        var partialResult = PartialJsonConverter.ReadPartialResult(content);
-        return partialResult;
+    public async Task<bool> Evaluate(string policy, object input)
+    {
+        var data = JsonSerializer.Serialize(new
+        {
+            input = input
+        });
+        
+        var message = (await _httpClient.PostAsync($"/v1/data/{policy}", new StringContent(data, Encoding.UTF8, "application/json")))
+            .EnsureSuccessStatusCode();
+        
+        var content = await message.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<EvalResult>(content);
+        
+        return result.Result;
     }
 
     public async Task CreateOrUpdatePolicy(string name, string query)
     {
-        var result = await _httpClient.PostAsync($"/v1/policies/{name}", new StringContent(query, Encoding.UTF8, "text/plain"));
-        
+        var result = await _httpClient.PutAsync($"/v1/policies/{name}", new StringContent(query, Encoding.UTF8, "text/plain"));
+
         result.EnsureSuccessStatusCode();
     }
 
@@ -181,6 +199,12 @@ public class OpaHttpClient : IOpaClient
 
         result.EnsureSuccessStatusCode();
     }
+}
+
+internal struct EvalResult
+{
+    [JsonPropertyName("result")]
+    public bool Result { get; set; }
 }
 
 internal class OpaInput
@@ -237,9 +261,9 @@ internal class OpaInputUser
 
 public interface IOpaManager
 {
-    void PushPolicy(string name, string query);
+    IOpaManager PushPolicy(string name, string query);
     
-    void PushPolicyFile(string name, string path);
+    IOpaManager PushPolicyFile(string name, string path);
 }
 
 public class OpaManager : IOpaManager
@@ -251,28 +275,28 @@ public class OpaManager : IOpaManager
         _opaClient = opaClient;
     }
     
-    public void PushPolicy(string name, string query)
+    public IOpaManager PushPolicy(string name, string query)
     {
-        _opaClient.CreateOrUpdatePolicy(name, query);
+        _opaClient.CreateOrUpdatePolicy(name, query).Wait();
+
+        return this;
     }
 
-    public void PushPolicyFile(string name, string path)
+    public IOpaManager PushPolicyFile(string name, string path)
     {
         var query = File.ReadAllText(path);
         
         PushPolicy(name, query);
+        
+        return this;
     }
 }
 
 public interface IOpaDataManager
 {
-    IOpaDataManager PushRoles();
-
-    IOpaDataManager PushUserRoles();
-
-    IOpaDataManager PushReadOnlyPermissions();
-
-    IOpaDataManager PushDemoFlag();
+    IOpaDataManager PushJsonData(string json);
+    
+    IOpaDataManager PushJsonDataFile(string path);
 }
 
 public class OpaDataManager : IOpaDataManager
@@ -294,86 +318,22 @@ public class OpaDataManager : IOpaDataManager
         _opaClient = opaClient;
     }
     
-    public IOpaDataManager PushRoles()
+    public IOpaDataManager PushJsonData(string json)
     {
-        static string ToPermissionValue(PermissionId permissionId) => 
-            permissionId != PermissionId.Any ? permissionId.ToString() : "*";
-
-        static string ToSecurableValue(SecurableId securableId) => 
-            securableId != SecurableId.Any ? securableId.ToString() : "*";
-
-        var rolePermissions = _context.RolePermissions
-            .ToArray()
-            .Select(rp => new
-            {
-                role = rp.RoleId, 
-                securable = ToSecurableValue(rp.SecurableId), 
-                permission = ToPermissionValue(rp.PermissionId)
-            })
-            .GroupBy(rp => rp.role)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Select(rp => new { rp.securable, rp.permission }));
-
-        var data = JsonSerializer.Serialize(rolePermissions);
-
-        _opaClient.DeleteData(nameof(rolePermissions));
-        _opaClient.CreateData(nameof(rolePermissions), data);
+        var data = JsonNode.Parse(json)!.AsObject();
+        foreach (var property in data)
+        {
+            _opaClient.CreateData(property.Key, property.Value!.ToJsonString()).Wait();    
+        }
 
         return this;
     }
 
-    public IOpaDataManager PushUserRoles()
+    public IOpaDataManager PushJsonDataFile(string path)
     {
-       
+        var data = File.ReadAllText(path);
 
-        var userRoles = _context.BankUserRoles
-            .Where(ur => ur.EndDate == null || ur.EndDate > _dateService.UtcNow)
-            .ToArray()
-            .Select(ur => new
-            {
-                user = ur.BankUserId.ToString(),
-                role = ur.RoleId.ToString(),
-                orgContext = new
-                {
-                    branch = ToOrgContextValue(ur.BranchId),
-                    regOffice = ToOrgContextValue(ur.RegionalOfficeId),
-                    office = ToOrgContextValue(ur.OfficeId)
-                }
-            })
-            .GroupBy(ur => ur.user)
-            .ToDictionary(
-                g => g.Key, 
-                g => g.Select(ur => new { ur.role, ur.orgContext }));
-        
-        var data = JsonSerializer.Serialize(userRoles);
-        
-        _opaClient.DeleteData(nameof(userRoles));
-        _opaClient.CreateData(nameof(userRoles), data);
-
-        return this;
-    }
-
-    public IOpaDataManager PushReadOnlyPermissions()
-    {
-        var readOnlyPermissions = _context.Permissions
-            .Where(p => p.IsReadonly)
-            .Select(p => p.Id.ToString());
-        
-        var data = JsonSerializer.Serialize(readOnlyPermissions);
-
-        _opaClient.DeleteData(nameof(readOnlyPermissions));
-        _opaClient.CreateData(nameof(readOnlyPermissions), data);
-
-        return this;
-    }
-
-    public IOpaDataManager PushDemoFlag()
-    {
-        var demoFlag = JsonSerializer.Serialize(_demoService.IsDemoModeActive);
-        
-        _opaClient.DeleteData(nameof(demoFlag));
-        _opaClient.CreateData(nameof(demoFlag), demoFlag);
+        PushJsonData(data);
 
         return this;
     }

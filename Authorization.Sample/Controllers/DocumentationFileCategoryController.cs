@@ -1,7 +1,6 @@
 using Authorization.Permissions;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
-using Authorization.Sample.Services;
 using Microsoft.AspNetCore.Mvc;
 using LinqToDB;
 using Microsoft.AspNetCore.Authorization;
@@ -65,7 +64,7 @@ public class DocumentationFileCategoryController : ControllerBase
             .Update();
     }
     
-    [HttpDelete]
+    [HttpDelete("{id}")]
     [Authorize(Securables.DocumentationFileDelete)]
     public void Delete(long id)
     {

@@ -1,4 +1,10 @@
 # Запросить доступные категории файлов документации
+DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
+Accept: application/json
+
+###
+
+# Запросить доступные категории файлов документации
 GET http://localhost:5136/documentationFileCategory?userId=BankUser
 Accept: application/json
 

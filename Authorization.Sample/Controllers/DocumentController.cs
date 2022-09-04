@@ -1,7 +1,8 @@
+using Authorization.Permissions;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
-using Authorization.Sample.Services;
 using LinqToDB;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DataContext = Authorization.Sample.Entities.DataContext;
 
@@ -12,41 +13,40 @@ namespace Authorization.Sample.Controllers;
 public class DocumentController : ControllerBase
 {
     private readonly DataContext _context;
-    private readonly AuthorizationEnforcer _enforcer;
+    private readonly IAuthorizationService _authorizationService;
 
-    public DocumentController(DataContext context, AuthorizationEnforcer enforcer)
+    public DocumentController(DataContext context, IAuthorizationService authorizationService)
     {
         _context = context;
-        _enforcer = enforcer;
+        _authorizationService = authorizationService;
     }
 
     [HttpGet]
-    [SecurablePermission(SecurableId.Document, PermissionId.View)]
+    [Authorize(Securables.DocumentView)]
     public IEnumerable<Document> Get()
     {
-        var query = _enforcer
-            .EnforceFilter(_context.Documents);
+        var query = _context.Documents;
         
         return query.ToArray();
     }
 
     [HttpGet("{id}")]
-    [SecurablePermission(SecurableId.Document, PermissionId.View)]
+    [Authorize(Securables.DocumentView)]
     public Document Get(long id)
     {
-        var query = _enforcer
-            .EnforceFilter(_context.Documents);
+        var query = _context.Documents;
         
         return query.SingleOrDefault(d => d.Id == id);
     }
     
     [HttpPut]
-    [SecurablePermission(SecurableId.Document, PermissionId.Create)]
-    public long Put(Document document)
+    [Authorize(Securables.DocumentCreate)]
+    public async Task<long> Put(Document document)
     {
-        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document.DocumentTypeId, PermissionId.Create)))
+        var result = await _authorizationService.AuthorizeAsync(User, document, Securables.DocumentCreate);
+        if (result.Succeeded)
         {
-            return _context.Documents.InsertWithInt64Identity(() => new Document
+            return await _context.Documents.InsertWithInt64IdentityAsync(() => new Document
             {
                 DocumentTypeId = document.DocumentTypeId,
                 BranchId = document.BranchId,
@@ -58,32 +58,34 @@ public class DocumentController : ControllerBase
     }
     
     [HttpPost]
-    [SecurablePermission(SecurableId.Document, PermissionId.Change)]
-    public void Post(Document document)
+    [Authorize(Securables.DocumentChange)]
+    public async Task Post(Document document)
     {
-        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document, PermissionId.Change)))
+        var result = await _authorizationService.AuthorizeAsync(User, document, Securables.DocumentChange);
+        if (result.Succeeded)
         {
-            _context.Documents
+            await _context.Documents
                 .Where(d => d.Id == document.Id)
                 .Set(d => d.DocumentTypeId, document.DocumentTypeId)
                 .Set(d => d.BranchId, document.BranchId)
                 .Set(d => d.OfficeId, document.OfficeId)
-                .Update();
+                .UpdateAsync();
         }
     }
     
     [HttpDelete]
-    [SecurablePermission(SecurableId.Document, PermissionId.Delete)]
-    public void Delete(long id)
+    [Authorize(Securables.DocumentDelete)]
+    public async Task Delete(long id)
     {
         var document = _context.Documents.SingleOrDefault(d => d.Id == id);
         if (document == null) return;
 
-        if (_enforcer.Enforce(new DocumentAuthorizationRequest(document, PermissionId.Delete)))
+        var result = await _authorizationService.AuthorizeAsync(User, document, Securables.DocumentChange);
+        if (result.Succeeded)
         {
-            _context.Documents
+            await _context.Documents
                 .Where(d => d.Id == document.Id)
-                .Delete();
+                .DeleteAsync();
         }
     }
 }

@@ -60,12 +60,12 @@ builder.Services.AddAuthorization(options =>
     foreach (var securable in securables)
     {
         var split = securable.Split('.');
-        var securableId = Enum.Parse<SecurableId>(split[0]);
-        var permissionId = Enum.Parse<PermissionId>(split[1]);
+        var securableId = split[0];
+        var permissionId = split[1];
         
-        options.AddPolicy(Securables.DocumentationFileView, b =>
+        options.AddPolicy(securable, b =>
         {
-            b.AddOpaResourceRequirement("sample.resource", securableId, permissionId);
+            b.AddOpaRequirement("sample.resource", securableId, permissionId);
         });
     }
 });
@@ -81,14 +81,12 @@ app.Services
 
 app.Services
     .GetRequiredService<IOpaDataManager>()
-    .PushRoles()
-    .PushUserRoles()
-    .PushReadOnlyPermissions()
-    .PushDemoFlag();
+    .PushJsonDataFile("data.json");
 
 app.Services
     .GetRequiredService<IOpaManager>()
-    .PushPolicyFile("rbac", "resource.rego");
+    .PushPolicyFile("sample.resource", "sample.resource.rego")
+    .PushPolicyFile("sample.document", "sample.document.rego");
 
 if (app.Environment.IsDevelopment())
 {

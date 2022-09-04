@@ -18,7 +18,7 @@ public class RequestQueryAuthenticationHandler : AuthenticationHandler<RequestQu
         if (Request.Query.TryGetValue(Options.UserIdParameter, out var userIdValue) &&
             Enum.TryParse<BankUserId>(userIdValue, out var userIdEnum))
         {
-            var userId = ((int)userIdEnum).ToString();
+            var userId = userIdEnum.ToString();
             
             var claims = new[] { new Claim(ClaimTypes.Name, userId) };
             var identity = new ClaimsIdentity(claims, nameof(RequestQueryAuthenticationHandler));
