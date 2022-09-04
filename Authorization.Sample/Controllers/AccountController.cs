@@ -1,8 +1,8 @@
+using Authorization.Permissions;
 using Authorization.Sample.Entities;
-using Authorization.Sample.Implementation;
-using Authorization.Sample.Services;
 using Microsoft.AspNetCore.Mvc;
 using LinqToDB;
+using Microsoft.AspNetCore.Authorization;
 using DataContext = Authorization.Sample.Entities.DataContext;
 
 namespace Authorization.Sample.Controllers;
@@ -12,37 +12,39 @@ namespace Authorization.Sample.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly DataContext _context;
-    private readonly AuthorizationEnforcer _enforcer;
+    private readonly IAuthorizationService _authorizationService;
     
-    public AccountController(DataContext context, AuthorizationEnforcer enforcer)
+    public AccountController(DataContext context, IAuthorizationService authorizationService)
     {
         _context = context;
-        _enforcer = enforcer;
+        _authorizationService = authorizationService;
     }
 
     [HttpGet("{id}")]
-    [SecurablePermission(SecurableId.Account, PermissionId.View)]
-    public Account Get(long id)
+    [Authorize(Securables.AccountView)]
+    public async Task<Account> Get(long id)
     {
         var account = _context.Accounts.SingleOrDefault(a => a.Id == id);
         if (account == null) return null;
 
-        if (_enforcer.Enforce(new AccountAuthorizationRequest(account, PermissionId.View)))
+        var result = await _authorizationService.AuthorizeAsync(User, account, Securables.AccountView);
+        if (result.Succeeded)
             return account;
 
         return null;
     }
 
     [HttpPut]
-    [SecurablePermission(SecurableId.Account, PermissionId.Create)]
-    public long Put([FromQuery] string accountNumber)
+    [Authorize(Securables.AccountCreate)]
+    public async Task<long> Put([FromQuery] string accountNumber)
     {
         if (TryGetGL2(accountNumber, out var gl2))
         {
-            if (_enforcer.Enforce(new AccountAuthorizationRequest(gl2, PermissionId.Create)))
+            var result = await _authorizationService.AuthorizeAsync(User, new Account { GL2 = gl2 }, Securables.AccountView);
+            if (result.Succeeded)
             {
-                return _context.Accounts
-                    .InsertWithInt64Identity(() => new Account { Number = accountNumber, GL2 = gl2 });
+                return await _context.Accounts
+                    .InsertWithInt64IdentityAsync(() => new Account { Number = accountNumber, GL2 = gl2 });
             }
         }
 
@@ -50,34 +52,36 @@ public class AccountController : ControllerBase
     }
     
     [HttpPost("{id}")]
-    [SecurablePermission(SecurableId.Account, PermissionId.Change)]
-    public void Post(long id, [FromQuery] string accountNumber)
+    [Authorize(Securables.AccountChange)]
+    public async Task Post(long id, [FromQuery] string accountNumber)
     {
         if (TryGetGL2(accountNumber, out var gl2))
         {
-            if (_enforcer.Enforce(new AccountAuthorizationRequest(gl2, PermissionId.Create)))
+            var result = await _authorizationService.AuthorizeAsync(User, new Account { GL2 = gl2 }, Securables.AccountView);
+            if (result.Succeeded)
             {
-                _context.Accounts
+                await _context.Accounts
                     .Where(a => a.Id == id)
                     .Set(a => a.Number, accountNumber)
                     .Set(a => a.GL2, gl2)
-                    .Update();
+                    .UpdateAsync();
             }
         }
     }
 
     [HttpDelete("{id}")]
-    [SecurablePermission(SecurableId.Account, PermissionId.Delete)]
-    public void Delete(long id)
+    [Authorize(Securables.AccountDelete)]
+    public async Task Delete(long id)
     {
         var account = _context.Accounts.SingleOrDefault(a => a.Id == id);
         if (account == null) return;
 
-        if (_enforcer.Enforce(new AccountAuthorizationRequest(account, PermissionId.Delete)))
+        var result = await _authorizationService.AuthorizeAsync(User, account, Securables.AccountView);
+        if (result.Succeeded)
         {
-            _context.Accounts
+            await _context.Accounts
                 .Where(a => a.Id == id)
-                .Delete();
+                .DeleteAsync();
         }
     }
     

@@ -2,7 +2,7 @@ using Authorization.Sample.Entities;
 
 namespace Authorization.Sample.Implementation;
 
-public class ResourceAuthorizationRequest : ICurrentUserAuthorizationRequest
+public class ResourceAuthorizationRequest
 {
     public ResourceAuthorizationRequest(SecurableId securableId, PermissionId permissionId, OrganizationContext organizationContext = null)
     {

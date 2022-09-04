@@ -1,6 +1,7 @@
 using Authorization.Permissions;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
+using Authorization.Sample.Services;
 using LinqToDB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,8 @@ public class DocumentController : ControllerBase
     [Authorize(Securables.DocumentView)]
     public IEnumerable<Document> Get()
     {
-        var query = _context.Documents;
+        var query = _authorizationService
+            .AuthorizeQueryable(_context.Documents);
         
         return query.ToArray();
     }
@@ -34,7 +36,8 @@ public class DocumentController : ControllerBase
     [Authorize(Securables.DocumentView)]
     public Document Get(long id)
     {
-        var query = _context.Documents;
+        var query = _authorizationService
+            .AuthorizeQueryable(_context.Documents);
         
         return query.SingleOrDefault(d => d.Id == id);
     }

@@ -18,13 +18,6 @@ builder.Services.AddSingleton(new DataContext(connectionOptions));
 builder.Services.AddSingleton<IDemoService>(new DemoService(false));
 builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<ICurrentDateService>(new CurrentDateService());
-builder.Services.AddSingleton<IAuthorizationModelFactory<AuthorizationModel>, AuthorizationModelFactory>();
-builder.Services.AddSingleton<IMatcher<ResourceAuthorizationRequest>, ResourceMatcher>();
-builder.Services.AddSingleton<IMatcher<DocumentAuthorizationRequest>, DocumentMatcher>();
-builder.Services.AddSingleton<IMatcher<AccountAuthorizationRequest>, AccountMatcher>();
-builder.Services.AddSingleton<IFilter<Document, DefaultFilterRequest>, DocumentFilter>();
-builder.Services.AddSingleton<IFilter<DocumentationFileCategory, DefaultFilterRequest>, DocumentationFileCategoryFilter>();
-builder.Services.AddSingleton<AuthorizationEnforcer>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers().AddJsonOptions(opts =>
@@ -35,6 +28,7 @@ builder.Services.AddAuthentication(opts =>
 {
     opts.DefaultScheme = AuthSchemas.RequestQueryScheme;
 }).AddScheme<RequestQueryOptions, RequestQueryAuthenticationHandler>(AuthSchemas.RequestQueryScheme, _ => {});
+
 builder.Services.AddSingleton<IAuthorizationHandler, OpaAuthorizationHandler>();
 builder.Services.AddSingleton<IOpaManager, OpaManager>();
 builder.Services.AddSingleton<IOpaDataManager, OpaDataManager>();
@@ -49,15 +43,7 @@ builder.Services.AddHttpClient<IOpaClient, OpaHttpClient>()
 
 builder.Services.AddAuthorization(options =>
 {
-    var securables = new[]
-    {
-        Securables.DocumentationFileView,
-        Securables.DocumentationFileCreate,
-        Securables.DocumentationFileChange,
-        Securables.DocumentationFileDelete
-    };
-
-    foreach (var securable in securables)
+    foreach (var securable in Securables.EnumerateSecurables())
     {
         var split = securable.Split('.');
         var securableId = split[0];

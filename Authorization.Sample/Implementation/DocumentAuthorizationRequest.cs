@@ -2,7 +2,7 @@ using Authorization.Sample.Entities;
 
 namespace Authorization.Sample.Implementation;
 
-public class DocumentAuthorizationRequest : ICurrentUserAuthorizationRequest
+public class DocumentAuthorizationRequest
 {
     public DocumentAuthorizationRequest(Document document, PermissionId permissionId)
     {

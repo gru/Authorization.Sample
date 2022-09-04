@@ -1,6 +1,7 @@
 using Authorization.Permissions;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
+using Authorization.Sample.Services;
 using Microsoft.AspNetCore.Mvc;
 using LinqToDB;
 using Microsoft.AspNetCore.Authorization;
@@ -13,20 +14,20 @@ namespace Authorization.Sample.Controllers;
 public class DocumentationFileCategoryController : ControllerBase
 {
     private readonly DataContext _context;
-    private readonly AuthorizationEnforcer _enforcer;
+    private readonly IAuthorizationService _authorizationService;
 
-    public DocumentationFileCategoryController(DataContext context, AuthorizationEnforcer enforcer)
+    public DocumentationFileCategoryController(DataContext context, IAuthorizationService authorizationService)
     {
         _context = context;
-        _enforcer = enforcer;
+        _authorizationService = authorizationService;
     }
     
     [HttpGet]
     [Authorize(Securables.DocumentationFileView)]
     public IEnumerable<DocumentationFileCategory> Get()
     {
-        var query = _enforcer
-            .EnforceFilter(_context.DocumentationFileCategories);
+        var query = _authorizationService
+            .AuthorizeQueryable(_context.DocumentationFileCategories);
         
         return query.ToArray();
     }
@@ -35,8 +36,8 @@ public class DocumentationFileCategoryController : ControllerBase
     [Authorize(Securables.DocumentationFileView)]
     public DocumentationFileCategory Get(long id)
     {
-        var query = _enforcer
-            .EnforceFilter(_context.DocumentationFileCategories);
+        var query = _authorizationService
+            .AuthorizeQueryable(_context.DocumentationFileCategories);
         
         return query.SingleOrDefault(d => d.Id == id);
     }
