@@ -1,11 +1,11 @@
 {
-  "user_roles": {
+  "UserRoles": {
     "BankUser": [
       {
         "OrganizationContext": {
           "BranchId": "*",
           "OfficeId": "*",
-          "RegionalOfficeIdId": "*"
+          "RegionalOfficeId": "*"
         },
         "RoleId": "BankUser"
       }
@@ -15,7 +15,7 @@
         "OrganizationContext": {
           "BranchId": "1",
           "OfficeId": "*",
-          "RegionalOfficeIdId": "*"
+          "RegionalOfficeId": "*"
         },
         "RoleId": "BankUser"
       }
@@ -25,7 +25,7 @@
         "OrganizationContext": {
           "BranchId": "1",
           "OfficeId": "3",
-          "RegionalOfficeIdId": "2"
+          "RegionalOfficeId": "2"
         },
         "RoleId": "BankUser"
       }
@@ -35,7 +35,7 @@
         "OrganizationContext": {
           "BranchId": "1",
           "OfficeId": "*",
-          "RegionalOfficeIdId": "2"
+          "RegionalOfficeId": "2"
         },
         "RoleId": "BankUser"
       }
@@ -45,13 +45,13 @@
         "OrganizationContext": {
           "BranchId": "*",
           "OfficeId": "*",
-          "RegionalOfficeIdId": "*"
+          "RegionalOfficeId": "*"
         },
         "RoleId": "Supervisor"
       }
     ]
   },
-  "role_permissions": {
+  "RolePermissions": {
     "BankUser": [
       {
         "PermissionId": "View",
@@ -68,22 +68,30 @@
       {
         "PermissionId": "Change",
         "SecurableId": "Document"
+      },
+      {
+        "PermissionId": "View",
+        "SecurableId": "Document",
+        "ResourceTypeId": "DocumentTypeId",
+        "ResourceId": "Account"
+      },
+      {
+        "PermissionId": "Change",
+        "SecurableId": "Document",
+        "ResourceTypeId": "DocumentTypeId",
+        "ResourceId": "Account"
       }
     ],
     "Supervisor": [
       {
         "PermissionId": "*",
-        "SecurableId": "*"
+        "SecurableId": "*",
+        "ResourceTypeId": "*"
       }
     ]
   },
-  "role_document_types" : {
-    "BankUser": {
-      "Account": [ "Change", "View" ]
-    }
-  },
-  "read_only_permissions": [
+  "ReadOnlyPermissions": [
     "View"
   ],
-  "demo": false
+  "Demo": false
 }

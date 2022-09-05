@@ -1,6 +1,13 @@
 DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
 Accept: application/json
 
+<> 2022-09-05T115618.500.txt
+
+###
+
+DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
+Accept: application/json
+
 ###
 
 DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor

@@ -9,74 +9,78 @@ default allow := false
 allow if {
 	requested_permission_allowed
 
-	some role_permission in user_has_permission
+	some role in data.UserRoles[input.Subject.Name]
 
-	action_allowed(role_permission.permission)
-    securable_allowed(role_permission.securable)
+	match_organization_context(role.OrganizationContext, input.OrganizationContext)
+
+	some role_permission in data.RolePermissions[role.RoleId]
+
+	role_permission_allowed(role_permission, {"SecurableId": input.SecurableId, "PermissionId": input.PermissionId})
 }
 
-user_has_permission contains role_permission if {
-	some user_role in data.userRoles[input.subject.name]
+default allow_document := false
 
-	org_context_match(user_role.orgContext)
+allow_document if {
 
-	some role_permission in data.rolePermissions[user_role.role]
-}
+	match_organization_context(input.OrganizationContext, {"BranchId": input.Resource.BranchId, "OfficeId": input.Resource.OfficeId})
 
-org_context_match(ctx) if {
-	branch_match(ctx.branch)
-	reg_office_match(ctx.regOffice)
-	office_match(ctx.office)
-}
+	some role in data.UserRoles[input.Subject.Name]
 
-branch_match(branch) if {
-	branch == "*"
-}
+	match_organization_context(role.OrganizationContext, input.OrganizationContext)
 
-branch_match(branch) if {
-	branch == input.orgContext.branch
-}
+	some role_permission in data.RolePermissions[role.RoleId]
 
-office_match(office) if {
-	office == "*"
-}
-
-office_match(office) if {
-	office == input.orgContext.office
-}
-
-reg_office_match(reg_office) if {
-	reg_office == "*"
-}
-
-reg_office_match(reg_office) if {
-	input.orgContext.regOffice == "*"
-}
-
-reg_office_match(reg_office) if {
-	reg_office = input.orgContext.regOffice
+	role_permission_allowed(role_permission, { "SecurableId": input.SecurableId, "ResourceTypeId": "DocumentTypeId", "ResourceId": input.Resource.DocumentTypeId, "PermissionId": input.PermissionId})
 }
 
 requested_permission_allowed if {
-	input.action in data.readOnlyPermissions
+	input.PermissionId in data.read_only_permissions
 }
 
 requested_permission_allowed if {
-	not data.demoFlag
+	not data.demo
 }
 
-action_allowed(action) if {
-	action == "*"
+match_organization_context(role_context, input_context) if {
+	role_context == {"BranchId": "*", "RegionalOfficeId": "*", "OfficeId": "*"}
 }
 
-action_allowed(action) if {
-	action == input.action
+match_organization_context(role_context, input_context) if {
+	role_context == {"BranchId": input_context.BranchId, "RegionalOfficeId": "*", "OfficeId": "*"}
 }
 
-securable_allowed(action) if {
-	action == "*"
+match_organization_context(role_context, input_context) if {
+	role_context == {"BranchId": input_context.BranchId, "RegionalOfficeId": input_context.RegionalOfficeId, "OfficeId": "*"}
 }
 
-securable_allowed(action) if {
-	action == input.action
+match_organization_context(role_context, input_context) if {
+	role_context == {"BranchId": input_context.BranchId, "RegionalOfficeId": input_context.RegionalOfficeId, "OfficeId": input_context.OfficeId}
+}
+
+match_organization_context(role_context, input_context) if {
+	role_context == {"BranchId": input_context.BranchId, "RegionalOfficeId": "*", "OfficeId": input_context.OfficeId}
+}
+
+role_permission_allowed(role_permission, requested_permission) if {
+	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId}
+}
+
+role_permission_allowed(role_permission, requested_permission) if {
+	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": "*"}
+}
+
+role_permission_allowed(role_permission, requested_permission) if {
+	role_permission == {"SecurableId": "*", "PermissionId": "*", "ResourceTypeId": "*"}
+}
+
+role_permission_allowed(role_permission, requested_permission) if {
+	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId, "ResourceTypeId": requested_permission.ResourceTypeId, "ResourceId": requested_permission.ResourceId }
+}
+
+role_permission_allowed(role_permission, requested_permission) if {
+	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId, "ResourceTypeId": requested_permission.ResourceTypeId, "ResourceId": "*" }
+}
+
+role_permission_allowed(role_permission, requested_permission) if {
+	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId, "ResourceTypeId": "*" }
 }

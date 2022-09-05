@@ -35,12 +35,12 @@ public class AccountController : ControllerBase
     }
 
     [HttpPut]
-    [Authorize(Securables.AccountCreate)]
+    [Authorize(Securables.AccountManage)]
     public async Task<long> Put([FromQuery] string accountNumber)
     {
         if (TryGetGL2(accountNumber, out var gl2))
         {
-            var result = await _authorizationService.AuthorizeAsync(User, new Account { GL2 = gl2 }, Securables.AccountView);
+            var result = await _authorizationService.AuthorizeAsync(User, new Account { GL2 = gl2 }, Securables.AccountManage);
             if (result.Succeeded)
             {
                 return await _context.Accounts
@@ -52,12 +52,12 @@ public class AccountController : ControllerBase
     }
     
     [HttpPost("{id}")]
-    [Authorize(Securables.AccountChange)]
+    [Authorize(Securables.AccountManage)]
     public async Task Post(long id, [FromQuery] string accountNumber)
     {
         if (TryGetGL2(accountNumber, out var gl2))
         {
-            var result = await _authorizationService.AuthorizeAsync(User, new Account { GL2 = gl2 }, Securables.AccountView);
+            var result = await _authorizationService.AuthorizeAsync(User, new Account { GL2 = gl2 }, Securables.AccountManage);
             if (result.Succeeded)
             {
                 await _context.Accounts
@@ -70,13 +70,13 @@ public class AccountController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Securables.AccountDelete)]
+    [Authorize(Securables.AccountManage)]
     public async Task Delete(long id)
     {
         var account = _context.Accounts.SingleOrDefault(a => a.Id == id);
         if (account == null) return;
 
-        var result = await _authorizationService.AuthorizeAsync(User, account, Securables.AccountView);
+        var result = await _authorizationService.AuthorizeAsync(User, account, Securables.AccountManage);
         if (result.Succeeded)
         {
             await _context.Accounts

@@ -4,18 +4,18 @@ namespace Authorization.Sample.Implementation;
 
 public class OpaRequirement : IAuthorizationRequirement
 {
-    public OpaRequirement(string name, string resource, string operation)
+    public OpaRequirement(string name, string securableId, string permissionId)
     {
         Name = name;
-        Resource = resource;
-        Operation = operation;
+        SecurableId = securableId;
+        PermissionId = permissionId;
     }
 
     public string Name { get; }
 
-    public string Resource { get; }
+    public string SecurableId { get; }
 
-    public string Operation { get; }
+    public string PermissionId { get; }
 
     public string GetQuery()
     {
@@ -29,7 +29,7 @@ public class OpaRequirement : IAuthorizationRequirement
     
     public IEnumerable<string> GetUnknowns()
     {
-        if (Resource != null)
-            yield return $"data.{Resource}";
+        if (SecurableId != null)
+            yield return $"data.{SecurableId}";
     }
 }

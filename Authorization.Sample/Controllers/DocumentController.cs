@@ -1,7 +1,6 @@
 using Authorization.Permissions;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
-using Authorization.Sample.Services;
 using LinqToDB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -43,10 +42,10 @@ public class DocumentController : ControllerBase
     }
     
     [HttpPut]
-    [Authorize(Securables.DocumentCreate)]
+    [Authorize(Securables.DocumentManage)]
     public async Task<long> Put(Document document)
     {
-        var result = await _authorizationService.AuthorizeAsync(User, document, Securables.DocumentCreate);
+        var result = await _authorizationService.AuthorizeAsync(User, document, Securables.DocumentManage);
         if (result.Succeeded)
         {
             return await _context.Documents.InsertWithInt64IdentityAsync(() => new Document
@@ -61,10 +60,10 @@ public class DocumentController : ControllerBase
     }
     
     [HttpPost]
-    [Authorize(Securables.DocumentChange)]
+    [Authorize(Securables.DocumentManage)]
     public async Task Post(Document document)
     {
-        var result = await _authorizationService.AuthorizeAsync(User, document, Securables.DocumentChange);
+        var result = await _authorizationService.AuthorizeAsync(User, document, Securables.DocumentManage);
         if (result.Succeeded)
         {
             await _context.Documents
@@ -77,13 +76,13 @@ public class DocumentController : ControllerBase
     }
     
     [HttpDelete]
-    [Authorize(Securables.DocumentDelete)]
+    [Authorize(Securables.DocumentManage)]
     public async Task Delete(long id)
     {
         var document = _context.Documents.SingleOrDefault(d => d.Id == id);
         if (document == null) return;
 
-        var result = await _authorizationService.AuthorizeAsync(User, document, Securables.DocumentChange);
+        var result = await _authorizationService.AuthorizeAsync(User, document, Securables.DocumentManage);
         if (result.Succeeded)
         {
             await _context.Documents

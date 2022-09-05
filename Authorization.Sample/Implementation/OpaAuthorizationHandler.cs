@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using static Authorization.Sample.Implementation.OrgContextHelpers;
 
 namespace Authorization.Sample.Implementation;
 
@@ -17,25 +18,33 @@ public class OpaAuthorizationHandler : AuthorizationHandler<OpaRequirement>
     {
         var policy = requirement.GetPolicy();
         var subject = OpaInputUser.FromPrincipal(context.User);
-        var (branch, regOffice, office) = GetOrganizationContext();
+        var (branchId, regionalOfficeId, officeId) = GetOrganizationContext();
         var input = new OpaInput
         {
             Subject = subject,
-            Action = requirement.Operation,
-            Object = requirement.Resource,
+            PermissionId = requirement.PermissionId,
+            SecurableId = requirement.SecurableId,
             Extensions = new Dictionary<string, object>
             {
-                ["orgContext"] = new
+                [nameof(OrganizationContext)] = new
                 {
-                    branch = OrgContextHelpers.ToOrgContextValue(branch),
-                    regOffice = OrgContextHelpers.ToOrgContextValue(regOffice),
-                    office = OrgContextHelpers.ToOrgContextValue(office),
+                    BranchId = ToOrgContextValue(branchId),
+                    RegionalOfficeId = ToOrgContextValue(regionalOfficeId),
+                    OfficeId = ToOrgContextValue(officeId),
                 }
             }
         };
 
+        if (context.Resource != null && context.Resource is not HttpContext)
+        {
+            input.Extensions["Resource"] = context.Resource;
+        }
+        
         var result = await _opaClient.Evaluate(policy, input);
-        if (result) context.Succeed(requirement);
+        if (result)
+        {
+            context.Succeed(requirement);
+        }
     }
 
     private (long?, long?, long?) GetOrganizationContext()

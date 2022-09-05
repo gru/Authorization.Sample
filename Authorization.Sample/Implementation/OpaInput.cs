@@ -4,14 +4,11 @@ namespace Authorization.Sample.Implementation;
 
 internal class OpaInput
 {
-    [JsonPropertyName("subject")]
     public OpaInputUser Subject { get; set; }
 
-    [JsonPropertyName("action")]
-    public string Action { get; set; }
+    public string PermissionId { get; set; }
     
-    [JsonPropertyName("object")]
-    public object Object { get; set; }
+    public object SecurableId { get; set; }
 
     [JsonExtensionData]
     public Dictionary<string, object> Extensions { get; set; }

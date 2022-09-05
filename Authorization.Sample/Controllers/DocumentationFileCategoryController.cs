@@ -1,7 +1,6 @@
 using Authorization.Permissions;
 using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
-using Authorization.Sample.Services;
 using Microsoft.AspNetCore.Mvc;
 using LinqToDB;
 using Microsoft.AspNetCore.Authorization;
@@ -43,7 +42,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpPut]
-    [Authorize(Securables.DocumentationFileCreate)]
+    [Authorize(Securables.DocumentationFileManage)]
     public long Put(DocumentationFileCategory category)
     {
         return _context.DocumentationFileCategories
@@ -55,7 +54,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpPost]
-    [Authorize(Securables.DocumentationFileChange)]
+    [Authorize(Securables.DocumentationFileManage)]
     public void Post(DocumentationFileCategory category)
     {
         _context.DocumentationFileCategories
@@ -66,7 +65,7 @@ public class DocumentationFileCategoryController : ControllerBase
     }
     
     [HttpDelete("{id}")]
-    [Authorize(Securables.DocumentationFileDelete)]
+    [Authorize(Securables.DocumentationFileManage)]
     public void Delete(long id)
     {
         var document = _context.DocumentationFileCategories.SingleOrDefault(d => d.Id == id);

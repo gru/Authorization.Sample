@@ -54,6 +54,11 @@ builder.Services.AddAuthorization(options =>
             b.AddOpaRequirement("sample.resource", securableId, permissionId);
         });
     }
+    
+    options.AddPolicy(Securables.DocumentManage, b =>
+    {
+        b.AddOpaRequirement("sample.document", "Document", "Manage");
+    });
 });
 
 builder.Services.AddEndpointsApiExplorer();
