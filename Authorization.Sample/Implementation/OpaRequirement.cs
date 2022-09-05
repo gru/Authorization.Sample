@@ -17,14 +17,9 @@ public class OpaRequirement : IAuthorizationRequirement
 
     public string PermissionId { get; }
 
-    public string GetQuery()
-    {
-        return $"data.{Name}.allow == true";
-    }
-
     public string GetPolicy()
     {
-        return $"{Name.Replace('.', '/')}/allow" ;
+        return Name.Replace('.', '/') ;
     }
     
     public IEnumerable<string> GetUnknowns()

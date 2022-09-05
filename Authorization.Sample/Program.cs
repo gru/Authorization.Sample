@@ -51,13 +51,13 @@ builder.Services.AddAuthorization(options =>
         
         options.AddPolicy(securable, b =>
         {
-            b.AddOpaRequirement("sample.resource", securableId, permissionId);
+            b.AddOpaRequirement("sample.resource.allow", securableId, permissionId);
         });
     }
     
     options.AddPolicy(Securables.DocumentManage, b =>
     {
-        b.AddOpaRequirement("sample.document", "Document", "Manage");
+        b.AddOpaRequirement("sample.resource.allow_document", "Document", "Manage");
     });
 });
 
@@ -76,8 +76,7 @@ app.Services
 
 app.Services
     .GetRequiredService<IOpaManager>()
-    .PushPolicyFile("sample.resource", "sample.resource.rego")
-    .PushPolicyFile("sample.document", "sample.document.rego");
+    .PushPolicyFile("sample.resource", "sample.resource.rego");
 
 if (app.Environment.IsDevelopment())
 {
