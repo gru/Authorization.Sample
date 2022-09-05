@@ -23,20 +23,20 @@ public class DocumentController : ControllerBase
 
     [HttpGet]
     [Authorize(Securables.DocumentView)]
-    public IEnumerable<Document> Get()
+    public async Task<IEnumerable<Document>> Get()
     {
-        var query = _authorizationService
-            .AuthorizeQueryable(_context.Documents);
+        var query = await _authorizationService
+            .AuthorizeQueryAsync(User, _context.Documents, Securables.DocumentView);
         
         return query.ToArray();
     }
 
     [HttpGet("{id}")]
     [Authorize(Securables.DocumentView)]
-    public Document Get(long id)
+    public async Task<Document> Get(long id)
     {
-        var query = _authorizationService
-            .AuthorizeQueryable(_context.Documents);
+        var query = await _authorizationService
+            .AuthorizeQueryAsync(User, _context.Documents, Securables.DocumentView);
         
         return query.SingleOrDefault(d => d.Id == id);
     }

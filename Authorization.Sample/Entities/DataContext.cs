@@ -75,9 +75,7 @@ public class DataContext : DataConnection
         Roles.Insert(() => new Role { Id = RoleId.Supervisor, Name = nameof(RoleId.Supervisor) });
 
         Permissions.Insert(() => new Permission { Id = PermissionId.View, Name = nameof(PermissionId.View), IsReadonly = true });
-        Permissions.Insert(() => new Permission { Id = PermissionId.Create, Name = nameof(PermissionId.Create), IsReadonly = false });
-        Permissions.Insert(() => new Permission { Id = PermissionId.Change, Name = nameof(PermissionId.Change), IsReadonly = false });
-        Permissions.Insert(() => new Permission { Id = PermissionId.Delete, Name = nameof(PermissionId.Delete), IsReadonly = false });
+        Permissions.Insert(() => new Permission { Id = PermissionId.Manage, Name = nameof(PermissionId.Manage), IsReadonly = false });
         Permissions.Insert(() => new Permission { Id = PermissionId.Any, Name = nameof(PermissionId.Any), IsReadonly = false });
 
         Securables.Insert(() => new Securable { Id = SecurableId.Document, Name = nameof(SecurableId.Document) });
@@ -89,7 +87,7 @@ public class DataContext : DataConnection
         RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.DocumentationFile });
         RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Account, ResourceTypeId = ResourceTypeId.GL2Group, ResourceId = GL2GroupIds.Bank });
         RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.View, SecurableId = SecurableId.Document, ResourceTypeId = ResourceTypeId.DocumentType, ResourceId = (long) DocumentTypeId.Account });
-        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.Change, SecurableId = SecurableId.Document, ResourceTypeId = ResourceTypeId.DocumentType, ResourceId = (long) DocumentTypeId.Account });
+        RolePermissions.Insert(() => new RolePermission { RoleId = RoleId.BankUser, PermissionId = PermissionId.Manage, SecurableId = SecurableId.Document, ResourceTypeId = ResourceTypeId.DocumentType, ResourceId = (long) DocumentTypeId.Account });
         
         Documents.Insert(() => new Document { Id = 1, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Account });
         Documents.Insert(() => new Document { Id = 2, BranchId = OrgIds.BranchId, OfficeId = OrgIds.OfficeId, DocumentTypeId = DocumentTypeId.Account });

@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="linq2db.SQLite" Version="4.1.1" />
+        <PackageReference Include="OPADotNet.Expressions" Version="1.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
         <PackageReference Include="OPADotNet.Core" Version="1.0.0" />
     </ItemGroup>

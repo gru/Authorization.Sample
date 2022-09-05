@@ -5,13 +5,13 @@ namespace Authorization.Sample.Implementation;
 
 public static class AuthorizationPolicyBuilderEx
 {
-    public static AuthorizationPolicyBuilder AddOpaResourceRequirement(this AuthorizationPolicyBuilder builder, string name, SecurableId securableId, PermissionId permissionId)
+    public static AuthorizationPolicyBuilder AddOpaRequirement(this AuthorizationPolicyBuilder builder, string policy, SecurableId securableId, PermissionId permissionId)
     {
-        return builder.AddRequirements(new OpaRequirement(name, securableId.ToString(), permissionId.ToString()));
+        return builder.AddRequirements(new OpaRequirement(policy, securableId.ToString(), permissionId.ToString()));
     }
     
-    public static AuthorizationPolicyBuilder AddOpaRequirement(this AuthorizationPolicyBuilder builder, string name, string resource = "", string operation = "")
+    public static AuthorizationPolicyBuilder AddOpaRequirement(this AuthorizationPolicyBuilder builder, string policy, string securableId = "", string permissionId = "")
     {
-        return builder.AddRequirements(new OpaRequirement(name, resource, operation));
+        return builder.AddRequirements(new OpaRequirement(policy, securableId, permissionId));
     }
 }

@@ -1,3 +1,267 @@
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T225312.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T225126.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T223656.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T223526.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T223506.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T222838.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T222818.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T222811.500.txt
+
+###
+
+GET http://localhost:5136/account/1?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T221724.200.json
+
+###
+
+GET http://localhost:5136/account/1?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T221722.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T221528.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T221402.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T221358.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T221342.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T221325.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T221044.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T200508.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T195605.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T195547.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T194507.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T193330.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T193051.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T192149.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T191737.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T191718.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T185809.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T181519.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T171113.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T171041.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T170915.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T170909.500.txt
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T170210.500.txt
+
+###
+
+DELETE http://localhost:5136/documentationFileCategory/1?userId=BankUser
+Accept: application/json
+
+###
+
+DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
+Accept: application/json
+
+###
+
 DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
 Accept: application/json
 
@@ -53,254 +317,6 @@ DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
 Accept: application/json
 
 <> 2022-09-03T150511.500.txt
-
-###
-
-DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
-Accept: application/json
-
-###
-
-GET http://localhost:5136/documentationFileCategory?userId=BankUser
-Accept: application/json
-
-<> 2022-08-27T075414.200.json
-
-###
-
-GET http://localhost:5136/documentationFileCategory/2?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/documentationFileCategory/2?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/documentationFileCategory?userId=BankUser
-Accept: application/json
-
-<> 2022-08-27T075307.200.json
-
-###
-
-PUT http://localhost:5136/document?userId=Supervisor
-Content-Type: application/json
-
-{
-  "DocumentTypeId": "Account",
-  "BranchId": 1,
-  "OfficeId": 3
-}
-
-<> 2022-08-26T184631.200.json
-
-###
-
-PUT http://localhost:5136/document?userId=Supervisor
-Content-Type: application/json
-
-{
-  "DocumentTypeId": "Account",
-  "BranchId": 1,
-  "OfficeId": 3
-}
-
-<> 2022-08-26T184523.200.json
-
-###
-
-PUT http://localhost:5136/document?userId=Supervisor
-Content-Type: application/json
-
-{
-  "DocumentTypeId": "Account",
-  "BranchId": 1,
-  "OfficeId": 3
-}
-
-<> 2022-08-26T184359.200.json
-
-###
-
-PUT http://localhost:5136/document?userId=Supervisor
-Content-Type: application/json
-
-{
-  "DocumentTypeId": "Account",
-  "BranchId": 1,
-  "OfficeId": 3
-}
-
-<> 2022-08-26T184354.200.json
-
-###
-
-GET http://localhost:5136/document?userId=Supervisor
-Accept: application/json
-
-<> 2022-08-26T184336.200.json
-
-###
-
-POST http://localhost:5136/document?userId=Supervisor
-Content-Type: application/json
-
-{
-  "Id": 5,
-  "DocumentTypeId": "Account",
-  "BranchId": 1,
-  "OfficeId": 3
-}
-
-###
-
-POST http://localhost:5136/document?userId=Supervisor
-Content-Type: application/json
-
-{
-  "Id": 5,
-  "DocumentTypeId": "Account",
-  "BranchId": 1,
-  "OfficeId": 3
-}
-
-###
-
-POST http://localhost:5136/document?userId=Supervisor
-Content-Type: application/json
-
-{
-  "Id": 5,
-  "DocumentTypeId": "Account",
-  "BranchId": 1,
-  "OfficeId": 3
-}
-
-###
-
-PUT http://localhost:5136/document?userId=Supervisor
-Content-Type: application/json
-
-{
-  "DocumentTypeId": "Account",
-  "BranchId": 1,
-  "OfficeId": 3
-}
-
-<> 2022-08-26T184319.200.json
-
-###
-
-GET http://localhost:5136/account/4?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/account/4?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/account/1?userId=BankUser
-Accept: application/json
-
-<> 2022-08-26T184252.200.json
-
-###
-
-GET http://localhost:5136/account/4?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/account/4?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/account/4?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/account/1?userId=BankUser
-Accept: application/json
-
-<> 2022-08-25T122327.200.json
-
-###
-
-GET http://localhost:5136/account/1?userId=BankUser
-Accept: application/json
-
-<> 2022-08-25T122209.500.txt
-
-###
-
-GET http://localhost:5136/account/1?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/account/1?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/account/1?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=Superuser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=BranchUser&branchId=1&officeId=3
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=BranchUser&branchId=2&officeId=3
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=BranchUser&branchId=2&officeId=3
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=BranchUser&branchId=2
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=BranchUser&branchId=2
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=BranchUser&branchId=1
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=BankUser
-Accept: application/json
-
-###
-
-GET http://localhost:5136/document?userId=Superuser
-Accept: application/json
 
 ###
 

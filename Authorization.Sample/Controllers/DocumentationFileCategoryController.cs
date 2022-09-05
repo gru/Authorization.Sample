@@ -3,6 +3,7 @@ using Authorization.Sample.Entities;
 using Authorization.Sample.Implementation;
 using Microsoft.AspNetCore.Mvc;
 using LinqToDB;
+using LinqToDB.Tools;
 using Microsoft.AspNetCore.Authorization;
 using DataContext = Authorization.Sample.Entities.DataContext;
 
@@ -23,20 +24,20 @@ public class DocumentationFileCategoryController : ControllerBase
     
     [HttpGet]
     [Authorize(Securables.DocumentationFileView)]
-    public IEnumerable<DocumentationFileCategory> Get()
+    public async Task<IEnumerable<DocumentationFileCategory>> Get()
     {
-        var query = _authorizationService
-            .AuthorizeQueryable(_context.DocumentationFileCategories);
+        var query = await _authorizationService
+            .AuthorizeQueryAsync(User, _context.DocumentationFileCategories, Securables.DocumentationFileView);
         
         return query.ToArray();
     }
 
     [HttpGet("{id}")]
     [Authorize(Securables.DocumentationFileView)]
-    public DocumentationFileCategory Get(long id)
+    public async Task<DocumentationFileCategory> Get(long id)
     {
-        var query = _authorizationService
-            .AuthorizeQueryable(_context.DocumentationFileCategories);
+        var query = await _authorizationService
+            .AuthorizeQueryAsync(User, _context.DocumentationFileCategories, Securables.DocumentationFileView);
         
         return query.SingleOrDefault(d => d.Id == id);
     }

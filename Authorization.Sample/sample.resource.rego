@@ -18,9 +18,15 @@ allow if {
 	role_permission_allowed(role_permission, {"SecurableId": input.SecurableId, "PermissionId": input.PermissionId})
 }
 
+allow_document if {
+	input.SecurableId = "Document"
+	not input.Resource
+}
+
 default allow_document := false
 
 allow_document if {
+	input.SecurableId = "Document"
 
 	match_organization_context(input.OrganizationContext, {"BranchId": input.Resource.BranchId, "OfficeId": input.Resource.OfficeId})
 
@@ -30,7 +36,19 @@ allow_document if {
 
 	some role_permission in data.RolePermissions[role.RoleId]
 
-	role_permission_allowed(role_permission, { "SecurableId": input.SecurableId, "ResourceTypeId": "DocumentTypeId", "ResourceId": input.Resource.DocumentTypeId, "PermissionId": input.PermissionId})
+	role_permission_allowed(role_permission, {"SecurableId": input.SecurableId, "ResourceTypeId": "DocumentTypeId", "ResourceId": input.Resource.DocumentTypeId, "PermissionId": input.PermissionId})
+}
+
+default allow_documentation_file_category := false
+
+allow_documentation_file_category if {
+	input.SecurableId = "DocumentationFile"
+	not input.Resource
+}
+
+allow_documentation_file_category if {
+	input.SecurableId = "DocumentationFile"
+	input.Resource.CategoryType in {"All", "Bank"}
 }
 
 requested_permission_allowed if {
@@ -74,13 +92,13 @@ role_permission_allowed(role_permission, requested_permission) if {
 }
 
 role_permission_allowed(role_permission, requested_permission) if {
-	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId, "ResourceTypeId": requested_permission.ResourceTypeId, "ResourceId": requested_permission.ResourceId }
+	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId, "ResourceTypeId": requested_permission.ResourceTypeId, "ResourceId": requested_permission.ResourceId}
 }
 
 role_permission_allowed(role_permission, requested_permission) if {
-	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId, "ResourceTypeId": requested_permission.ResourceTypeId, "ResourceId": "*" }
+	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId, "ResourceTypeId": requested_permission.ResourceTypeId, "ResourceId": "*"}
 }
 
 role_permission_allowed(role_permission, requested_permission) if {
-	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId, "ResourceTypeId": "*" }
+	role_permission == {"SecurableId": requested_permission.SecurableId, "PermissionId": requested_permission.PermissionId, "ResourceTypeId": "*"}
 }

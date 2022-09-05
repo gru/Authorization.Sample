@@ -24,9 +24,10 @@ public class OpaHttpClient : IOpaClient
             Unknowns = unknowns
         });
         
-        var message = (await _httpClient.PostAsync("/v1/compile", new StringContent(data, Encoding.UTF8, "application/json")))
-            .EnsureSuccessStatusCode();
-        
+        var message = await _httpClient.PostAsync("/v1/compile", new StringContent(data, Encoding.UTF8, "application/json"));
+
+        message.EnsureSuccessStatusCode();
+            
         var content = await message.Content.ReadAsStringAsync();
         var result = PartialJsonConverter.ReadPartialResult(content);
         

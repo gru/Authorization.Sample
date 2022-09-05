@@ -27,7 +27,9 @@ builder.Services.AddControllers().AddJsonOptions(opts =>
 builder.Services.AddAuthentication(opts =>
 {
     opts.DefaultScheme = AuthSchemas.RequestQueryScheme;
-}).AddScheme<RequestQueryOptions, RequestQueryAuthenticationHandler>(AuthSchemas.RequestQueryScheme, _ => {});
+}).AddScheme<RequestQueryOptions, RequestQueryAuthenticationHandler>(AuthSchemas.RequestQueryScheme, _ =>
+{
+});
 
 builder.Services.AddSingleton<IAuthorizationHandler, OpaAuthorizationHandler>();
 builder.Services.AddSingleton<IOpaManager, OpaManager>();
@@ -57,7 +59,12 @@ builder.Services.AddAuthorization(options =>
     
     options.AddPolicy(Securables.DocumentManage, b =>
     {
-        b.AddOpaRequirement("sample.resource.allow_document", "Document", "Manage");
+        b.AddOpaRequirement("sample.resource.allow_document", SecurableId.Document, PermissionId.Manage);
+    });
+    
+    options.AddPolicy(Securables.DocumentationFileView, b =>
+    {
+        b.AddOpaRequirement("sample.resource.allow_documentation_file_category", SecurableId.DocumentationFile, PermissionId.View);
     });
 });
 

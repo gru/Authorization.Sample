@@ -21,10 +21,9 @@ public class OpaRequirement : IAuthorizationRequirement
     {
         return Name.Replace('.', '/') ;
     }
-    
-    public IEnumerable<string> GetUnknowns()
+
+    public string GetQuery()
     {
-        if (SecurableId != null)
-            yield return $"data.{SecurableId}";
+        return $"data.{Name} == true";
     }
 }
