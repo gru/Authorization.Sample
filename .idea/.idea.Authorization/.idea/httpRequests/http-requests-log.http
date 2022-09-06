@@ -1,3 +1,69 @@
+POST http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "Id": 5,
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-06T001045.200.json
+
+###
+
+GET http://localhost:5136/documentationFileCategory?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T234608.200.json
+
+###
+
+GET http://localhost:5136/document?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T232924.200.json
+
+###
+
+GET http://localhost:5136/document?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T230820.200.json
+
+###
+
+GET http://localhost:5136/document?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T230728.200.json
+
+###
+
+GET http://localhost:5136/document?userId=BankUser
+Accept: application/json
+
+<> 2022-09-05T230552.200.json
+
+###
+
+POST http://localhost:5136/document?userId=Supervisor
+Content-Type: application/json
+
+{
+  "Id": 5,
+  "DocumentTypeId": "Account",
+  "BranchId": 1,
+  "OfficeId": 3
+}
+
+###
+
 GET http://localhost:5136/documentationFileCategory?userId=BankUser
 Accept: application/json
 
@@ -271,52 +337,6 @@ Accept: application/json
 
 DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
 Accept: application/json
-
-###
-
-DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
-Accept: application/json
-
-<> 2022-09-03T223532.500.txt
-
-###
-
-DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
-Accept: application/json
-
-<> 2022-09-03T223504.500.txt
-
-###
-
-DELETE http://localhost:5136/documentationFileCategory/1?userId=BankUser
-Accept: application/json
-
-###
-
-DELETE http://localhost:5136/documentationFileCategory/1?userId=BankUser
-Accept: application/json
-
-###
-
-DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
-Accept: application/json
-
-###
-
-DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
-Accept: application/json
-
-###
-
-DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
-Accept: application/json
-
-###
-
-DELETE http://localhost:5136/documentationFileCategory/1?userId=Supervisor
-Accept: application/json
-
-<> 2022-09-03T150511.500.txt
 
 ###
 

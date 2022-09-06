@@ -57,6 +57,11 @@ builder.Services.AddAuthorization(options =>
         });
     }
     
+    options.AddPolicy(Securables.DocumentView, b =>
+    {
+        b.AddOpaRequirement("sample.resource.allow_document", SecurableId.Document, PermissionId.View);
+    });
+    
     options.AddPolicy(Securables.DocumentManage, b =>
     {
         b.AddOpaRequirement("sample.resource.allow_document", SecurableId.Document, PermissionId.Manage);
