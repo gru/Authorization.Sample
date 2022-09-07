@@ -4,7 +4,7 @@ using Authorization.Sample.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
-namespace Authorization.Sample.Services;
+namespace Authorization.Sample.Implementation;
 
 public class RequestQueryAuthenticationHandler : AuthenticationHandler<RequestQueryOptions>
 {

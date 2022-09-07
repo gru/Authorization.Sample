@@ -1,4 +1,4 @@
-namespace Authorization.Sample.Services;
+namespace Authorization.Sample.Implementation;
 
 public class AuthSchemas
 {

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Authorization.Sample.Services;
 using OPADotNet.Ast;
 using OPADotNet.Core.Models;
 

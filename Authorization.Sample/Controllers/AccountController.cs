@@ -1,5 +1,6 @@
 using Authorization.Permissions;
 using Authorization.Sample.Entities;
+using Authorization.Sample.Services;
 using Microsoft.AspNetCore.Mvc;
 using LinqToDB;
 using Microsoft.AspNetCore.Authorization;
@@ -12,12 +13,12 @@ namespace Authorization.Sample.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly DataContext _context;
-    private readonly IAuthorizationService _authorizationService;
+    private readonly IAuthorizationEnforcer _authorizationEnforcer;
     
-    public AccountController(DataContext context, IAuthorizationService authorizationService)
+    public AccountController(DataContext context, IAuthorizationEnforcer authorizationEnforcer)
     {
         _context = context;
-        _authorizationService = authorizationService;
+        _authorizationEnforcer = authorizationEnforcer;
     }
 
     [HttpGet("{id}")]
@@ -27,8 +28,7 @@ public class AccountController : ControllerBase
         var account = _context.Accounts.SingleOrDefault(a => a.Id == id);
         if (account == null) return null;
 
-        var result = await _authorizationService.AuthorizeAsync(User, account, Securables.AccountView);
-        if (result.Succeeded)
+        if (await _authorizationEnforcer.Enforce(account))
             return account;
 
         return null;
@@ -40,8 +40,7 @@ public class AccountController : ControllerBase
     {
         if (TryGetGL2(accountNumber, out var gl2))
         {
-            var result = await _authorizationService.AuthorizeAsync(User, new Account { GL2 = gl2 }, Securables.AccountManage);
-            if (result.Succeeded)
+            if (await _authorizationEnforcer.Enforce(new Account { Number = accountNumber, GL2 = gl2 }))
             {
                 return await _context.Accounts
                     .InsertWithInt64IdentityAsync(() => new Account { Number = accountNumber, GL2 = gl2 });
@@ -57,8 +56,7 @@ public class AccountController : ControllerBase
     {
         if (TryGetGL2(accountNumber, out var gl2))
         {
-            var result = await _authorizationService.AuthorizeAsync(User, new Account { GL2 = gl2 }, Securables.AccountManage);
-            if (result.Succeeded)
+            if (await _authorizationEnforcer.Enforce(new Account { Number = accountNumber, GL2 = gl2 }))
             {
                 await _context.Accounts
                     .Where(a => a.Id == id)
@@ -76,8 +74,7 @@ public class AccountController : ControllerBase
         var account = _context.Accounts.SingleOrDefault(a => a.Id == id);
         if (account == null) return;
 
-        var result = await _authorizationService.AuthorizeAsync(User, account, Securables.AccountManage);
-        if (result.Succeeded)
+        if (await _authorizationEnforcer.Enforce(account))
         {
             await _context.Accounts
                 .Where(a => a.Id == id)

@@ -1,6 +1,6 @@
-using Authorization.Sample.Implementation;
+using Authorization.Sample.Services;
 
-namespace Authorization.Sample.Services;
+namespace Authorization.Sample.Implementation;
 
 public class CurrentUserService : ICurrentUserService
 {

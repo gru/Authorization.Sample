@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 
-namespace Authorization.Sample.Services;
+namespace Authorization.Sample.Implementation;
 
 public class RequestQueryOptions : AuthenticationSchemeOptions
 {

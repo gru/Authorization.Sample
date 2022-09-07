@@ -31,6 +31,7 @@ builder.Services.AddAuthentication(opts =>
 {
 });
 
+builder.Services.AddSingleton<IAuthorizationEnforcer, AuthorizationEnforcer>();
 builder.Services.AddSingleton<IAuthorizationHandler, OpaAuthorizationHandler>();
 builder.Services.AddSingleton<IOpaManager, OpaManager>();
 builder.Services.AddSingleton<IOpaDataManager, OpaDataManager>();

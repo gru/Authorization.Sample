@@ -1,4 +1,4 @@
-namespace Authorization.Sample.Implementation;
+namespace Authorization.Sample.Services;
 
 public interface IOpaManager
 {

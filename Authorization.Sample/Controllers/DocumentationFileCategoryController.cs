@@ -1,9 +1,8 @@
 using Authorization.Permissions;
 using Authorization.Sample.Entities;
-using Authorization.Sample.Implementation;
+using Authorization.Sample.Services;
 using Microsoft.AspNetCore.Mvc;
 using LinqToDB;
-using LinqToDB.Tools;
 using Microsoft.AspNetCore.Authorization;
 using DataContext = Authorization.Sample.Entities.DataContext;
 
@@ -14,20 +13,20 @@ namespace Authorization.Sample.Controllers;
 public class DocumentationFileCategoryController : ControllerBase
 {
     private readonly DataContext _context;
-    private readonly IAuthorizationService _authorizationService;
+    private readonly IAuthorizationEnforcer _authorizationEnforcer;
 
-    public DocumentationFileCategoryController(DataContext context, IAuthorizationService authorizationService)
+    public DocumentationFileCategoryController(DataContext context, IAuthorizationEnforcer authorizationEnforcer)
     {
         _context = context;
-        _authorizationService = authorizationService;
+        _authorizationEnforcer = authorizationEnforcer;
     }
     
     [HttpGet]
     [Authorize(Securables.DocumentationFileView)]
     public async Task<IEnumerable<DocumentationFileCategory>> Get()
     {
-        var query = await _authorizationService
-            .AuthorizeQueryAsync(User, _context.DocumentationFileCategories, Securables.DocumentationFileView);
+        var query = await _authorizationEnforcer
+            .EnforceQueryable(_context.DocumentationFileCategories);
         
         return query.ToArray();
     }
@@ -36,8 +35,8 @@ public class DocumentationFileCategoryController : ControllerBase
     [Authorize(Securables.DocumentationFileView)]
     public async Task<DocumentationFileCategory> Get(long id)
     {
-        var query = await _authorizationService
-            .AuthorizeQueryAsync(User, _context.DocumentationFileCategories, Securables.DocumentationFileView);
+        var query = await _authorizationEnforcer
+            .EnforceQueryable(_context.DocumentationFileCategories);
         
         return query.SingleOrDefault(d => d.Id == id);
     }

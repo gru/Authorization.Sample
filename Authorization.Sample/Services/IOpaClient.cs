@@ -1,6 +1,6 @@
 using OPADotNet.Core.Models;
 
-namespace Authorization.Sample.Implementation;
+namespace Authorization.Sample.Services;
 
 public interface IOpaClient
 {
